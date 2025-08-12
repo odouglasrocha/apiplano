@@ -22,18 +22,23 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({ data }) => {
   };
 
   const sortedData = [...data].sort((a, b) => {
-    if (!sortField) return 0;
-    
-    let aValue = a[sortField as keyof EnrichedPlanItem];
-    let bValue = b[sortField as keyof EnrichedPlanItem];
-    
-    if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-    if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-    
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
+  if (!sortField) return 0;
+
+  let aValue = a[sortField as keyof EnrichedPlanItem];
+  let bValue = b[sortField as keyof EnrichedPlanItem];
+
+  // Define padrão para evitar undefined
+  if (aValue === undefined || aValue === null) aValue = typeof aValue === 'number' ? 0 : '';
+  if (bValue === undefined || bValue === null) bValue = typeof bValue === 'number' ? 0 : '';
+
+  if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+  if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+  if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+  if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+  return 0;
+});
+
 
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
