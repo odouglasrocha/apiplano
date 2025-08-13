@@ -267,10 +267,10 @@ function App() {
                 </h3>
                 <p className="text-gray-600 mb-8 leading-relaxed">
                   Carregue um arquivo Excel com o plano de produção. O arquivo deve conter as colunas: 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">CodMaterialProducao</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">MaterialProducao</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">PlanoCaixasFardos</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">Tons</span>.
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">CodMaterialProducao</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">MaterialProducao</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">PlanoCaixasFardos</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">Tons</span>.
                 </p>
                 
                 <ModernFileUpload
@@ -293,10 +293,10 @@ function App() {
                 </h3>
                 <p className="text-gray-600 mb-8 leading-relaxed">
                   Carregue um arquivo Excel com dados de produção realizada. O arquivo deve conter as colunas: 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">CodMaterialSap</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">TextoBreveMaterial</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">Qtd_real_origem</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">Data_de_criacao</span>.
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">CodMaterialSap</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">TextoBreveMaterial</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">Qtd_real_origem</span>, 
+                  <span className="inline-block font-mono bg-gray-100 px-2 py-1 rounded text-sm">Data_de_criacao</span>.
                 </p>
                 
                 <ModernFileUpload
