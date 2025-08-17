@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { PlanItem, EnrichedPlanItem } from '../types/production';
 import { materialsData } from '../data/materials';
 
-const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : '/api';
+const API_BASE_URL = '/api';
 
 interface Filters {
   codigo: string;
@@ -161,7 +161,40 @@ export const useProductionData = () => {
       return sum;
     }, 0);
     
-    const totalCaixas = filteredData.reduce((sum, item) => sum + item.PlanoCaixasFardos, 0);
+    // Calcular Qtd Total Fofura baseado no consumo de matéria-prima
+    const qtdTotalFofura = filteredData.reduce((sum, item) => {
+      const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+      
+      if (
+        item.BolsasProduzido !== undefined &&
+        item.MaterialProducao.toUpperCase().includes('FOFURA') &&
+        materialRef &&
+        materialRef.Gramagem
+      ) {
+        const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
+        const consumoKg = (item.BolsasProduzido * gramagem) / 1000;
+        return sum + consumoKg;
+      }
+      return sum;
+    }, 0);
+    
+    // Calcular Qtd Total Torcida baseado no consumo de matéria-prima
+    const qtdTotalTorcida = filteredData.reduce((sum, item) => {
+      const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+      
+      if (
+        item.BolsasProduzido !== undefined &&
+        item.MaterialProducao.toUpperCase().includes('TORCIDA') &&
+        materialRef &&
+        materialRef.Gramagem
+      ) {
+        const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
+        const consumoKg = (item.BolsasProduzido * gramagem) / 1000;
+        return sum + consumoKg;
+      }
+      return sum;
+    }, 0);
+    
     const totalTons = filteredData.reduce((sum, item) => sum + item.Tons, 0);
     
     // Calcular média de progresso baseada na mesma lógica da tabela
@@ -194,7 +227,8 @@ export const useProductionData = () => {
 
     return {
       totalConsumoKg: Math.round(totalConsumoKg * 1000) / 1000,
-      totalCaixas: Math.round(totalCaixas * 100) / 100,
+      qtdTotalFofura: Math.round(qtdTotalFofura * 1000) / 1000,
+      qtdTotalTorcida: Math.round(qtdTotalTorcida * 1000) / 1000,
       totalTons: Math.round(totalTons * 100) / 100,
       mediaProgresso: Math.round(mediaProgresso * 10) / 10
     };

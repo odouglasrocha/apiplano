@@ -4,7 +4,8 @@ import { Package, Truck, Scale, TrendingUp, Target, Clock, Zap, AlertTriangle } 
 interface ModernKPICardsProps {
   kpis: {
     totalConsumoKg: number;
-    totalCaixas: number;
+    qtdTotalFofura: number;
+    qtdTotalTorcida: number;
     totalTons: number;
     mediaProgresso: number;
   };
@@ -26,8 +27,24 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
       changeType: 'positive' as const
     },
     {
-      title: 'Caixas/Fardos',
-      value: kpis.totalCaixas.toLocaleString('pt-BR'),
+      title: 'Qtd Total Fofura & Torcida',
+      description: 'Consumo total em kg',
+      values: [
+        {
+          label: 'Fofura',
+          value: kpis.qtdTotalFofura.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + ' t'
+        },
+        {
+          label: 'Torcida',
+          value: kpis.qtdTotalTorcida.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + ' t'
+        }
+      ],
       icon: Truck,
       gradient: 'from-emerald-500 to-emerald-600',
       bgGradient: 'from-emerald-50 to-emerald-100',
@@ -94,10 +111,24 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
               
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                <div className="flex items-baseline space-x-1">
-                  <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-                  {card.unit && <span className="text-lg font-semibold text-gray-600">{card.unit}</span>}
-                </div>
+                {card.values ? (
+                  <div className="space-y-2">
+                    {card.description && (
+                      <p className="text-xs text-gray-500">{card.description}</p>
+                    )}
+                    {card.values.map((valueItem, idx) => (
+                      <div key={idx} className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-600">{valueItem.label}:</span>
+                        <span className="text-lg font-bold text-gray-800">{valueItem.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-baseline space-x-1">
+                    <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+                    {card.unit && <span className="text-lg font-semibold text-gray-600">{card.unit}</span>}
+                  </div>
+                )}
               </div>
             </div>
           </div>
