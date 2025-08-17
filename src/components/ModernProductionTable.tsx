@@ -176,7 +176,17 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                         return arredondado.toLocaleString('pt-BR');
                       })()}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Pallets/Gaiolas</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {(() => {
+                        const materialName = item.MaterialProducao.toUpperCase();
+                        if (materialName.includes('TORCIDA')) {
+                          return 'Pallets';
+                        } else if (materialName.includes('FOFURA')) {
+                          return 'Gaiolas';
+                        }
+                        return 'Pallets/Gaiolas';
+                      })()}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-semibold text-gray-900">
@@ -211,7 +221,17 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
 
                       return <span className="text-xs text-gray-400">0</span>;
                     })()}
-                    <div className="text-xs text-gray-500 mt-1">Pallets/Gaiolas</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {(() => {
+                        const materialName = item.MaterialProducao.toUpperCase();
+                        if (materialName.includes('TORCIDA')) {
+                          return 'Pallets';
+                        } else if (materialName.includes('FOFURA')) {
+                          return 'Gaiolas';
+                        }
+                        return 'Pallets/Gaiolas';
+                      })()}
+                    </div>
                   </td>
 
                   <td className="px-6 py-4">

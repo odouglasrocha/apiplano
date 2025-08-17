@@ -47,6 +47,8 @@ export const materialsData: Material[] = [
   { "Codigo": "300061784", "Material": "FOFURA CEBOLA 120GX8 PP", "Gramagem": "0,120", "Und": 8, "Caixas": 88, "PPm": 55 },
   { "Codigo": "300061785", "Material": "FOFURA CHURRASCO 120GX8 PP", "Gramagem": "0,120", "Und": 8, "Caixas": 88, "PPm": 55 },
 
+  { "Codigo": "300061861", "Material": "FOFURA CEBOLA 35GX10 PP", "Gramagem": "0,035", "Und": 10, "Caixas": 210, "PPm": 55 },
+
   { "Codigo": "300061855", "Material": "FOFURA REQUEIJAO ONDA 60GX10 PP", "Gramagem": "0,060", "Und": 10, "Caixas": 138, "PPm": 55 },
   { "Codigo": "300061856", "Material": "FOFURA QUEIJO PALITO 60GX10 PP", "Gramagem": "0,060", "Und": 10, "Caixas": 138, "PPm": 55 },
   { "Codigo": "300061857", "Material": "FOFURA PRESUNTO 60GX10 PP", "Gramagem": "0,060", "Und": 10, "Caixas": 138, "PPm": 55 },
