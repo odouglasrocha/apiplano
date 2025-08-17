@@ -7,6 +7,9 @@ interface ModernKPICardsProps {
     qtdTotalFofura: number;
     qtdTotalTorcida: number;
     totalTons: number;
+    dynamicConsumo: number;
+    hasFilterActive: boolean;
+    filteredMaterial: string;
     mediaProgresso: number;
   };
 }
@@ -14,16 +17,28 @@ interface ModernKPICardsProps {
 export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   const cards = [
     {
-      title: 'Planejamento',
-      value: kpis.totalTons.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-      }),
-      unit: 't',
-      icon: Scale,
+      title: 'Planejamento Fofura & Torcida',
+      description: 'Total em tons',
+      values: [
+        {
+          label: 'Fofura',
+          value: kpis.qtdTotalFofura.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + ' t'
+        },
+        {
+          label: 'Torcida',
+          value: kpis.qtdTotalTorcida.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + ' t'
+        }
+      ],
+      icon: Truck,
       gradient: 'from-amber-500 to-amber-600',
       bgGradient: 'from-amber-50 to-amber-100',
-      change: '+5%',
+      change: '+8%',
       changeType: 'positive' as const
     },
     {
@@ -81,23 +96,23 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
           <div
             key={index}
-            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.bgGradient} p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-white/20`}
+            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.bgGradient} p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 sm:hover:-translate-y-2 border border-white/20`}
           >
             {/* Background Pattern */}
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 opacity-10">
+            <div className="absolute top-0 right-0 -mt-2 -mr-2 sm:-mt-4 sm:-mr-4 w-16 h-16 sm:w-24 sm:h-24 opacity-10">
               <div className={`w-full h-full rounded-full bg-gradient-to-br ${card.gradient}`}></div>
             </div>
             
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
-                  <Icon className="w-6 h-6 text-white" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className={`flex items-center space-x-1 text-xs font-semibold px-2 py-1 rounded-full ${
                   card.changeType === 'positive' 
@@ -110,23 +125,23 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
               </div>
               
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">{card.title}</p>
                 {card.values ? (
                   <div className="space-y-2">
                     {card.description && (
                       <p className="text-xs text-gray-500">{card.description}</p>
                     )}
                     {card.values.map((valueItem, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
+                      <div key={idx} className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-gray-600">{valueItem.label}:</span>
-                        <span className="text-lg font-bold text-gray-800">{valueItem.value}</span>
+                        <span className="text-sm sm:text-lg font-bold text-gray-800 text-right">{valueItem.value}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="flex items-baseline space-x-1">
-                    <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-                    {card.unit && <span className="text-lg font-semibold text-gray-600">{card.unit}</span>}
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-800">{card.value}</p>
+                    {card.unit && <span className="text-base sm:text-lg font-semibold text-gray-600">{card.unit}</span>}
                   </div>
                 )}
               </div>

@@ -150,7 +150,8 @@ export const useProductionData = () => {
   }, [loadPlanData]);
 
   const kpis = useMemo(() => {
-    const totalConsumoKg = filteredData.reduce((sum, item) => {
+    // Calcular consumo total baseado em BolsasProduzido (dados completos)
+    const totalConsumoKg = planData.reduce((sum, item) => {
       const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
       
       if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
@@ -161,8 +162,8 @@ export const useProductionData = () => {
       return sum;
     }, 0);
     
-    // Calcular Qtd Total Fofura baseado no consumo de matéria-prima
-    const qtdTotalFofura = filteredData.reduce((sum, item) => {
+    // Calcular consumo filtrado por FOFURA baseado em BolsasProduzido (dados completos)
+    const qtdTotalFofura = planData.reduce((sum, item) => {
       const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
       
       if (
@@ -178,8 +179,8 @@ export const useProductionData = () => {
       return sum;
     }, 0);
     
-    // Calcular Qtd Total Torcida baseado no consumo de matéria-prima
-    const qtdTotalTorcida = filteredData.reduce((sum, item) => {
+    // Calcular consumo filtrado por TORCIDA baseado em BolsasProduzido (dados completos)
+    const qtdTotalTorcida = planData.reduce((sum, item) => {
       const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
       
       if (
@@ -195,6 +196,50 @@ export const useProductionData = () => {
       return sum;
     }, 0);
     
+    // ✅ NOVO: Calcular consumo dinâmico baseado no filtro ativo
+    const hasFilterFofura = filters.material.toUpperCase().includes('FOFURA');
+    const hasFilterTorcida = filters.material.toUpperCase().includes('TORCIDA');
+    
+    // ✅ Declarar hasFilterActive
+    const hasFilterActive = hasFilterFofura || hasFilterTorcida || filters.material.trim() !== '';
+    
+    // Calcular consumo dos dados filtrados (reativo ao filtro)
+    const consumoFiltradoFofura = filteredData
+      .filter(item => item.MaterialProducao.toUpperCase().includes('FOFURA'))
+      .reduce((sum, item) => {
+        const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+        if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
+          const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
+          const consumoKg = (item.BolsasProduzido * gramagem) / 1000;
+          return sum + consumoKg;
+        }
+        return sum;
+      }, 0);
+    
+    const consumoFiltradoTorcida = filteredData
+      .filter(item => item.MaterialProducao.toUpperCase().includes('TORCIDA'))
+      .reduce((sum, item) => {
+        const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+        if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
+          const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
+          const consumoKg = (item.BolsasProduzido * gramagem) / 1000;
+          return sum + consumoKg;
+        }
+        return sum;
+      }, 0);
+    
+    // ✅ LÓGICA DINÂMICA: Escolher valor baseado no filtro ativo
+    let dynamicConsumo = totalConsumoKg; // Padrão: total geral
+    let filteredMaterial = '';
+    
+    if (hasFilterFofura) {
+      dynamicConsumo = consumoFiltradoFofura;
+      filteredMaterial = 'FOFURA';
+    } else if (hasFilterTorcida) {
+      dynamicConsumo = consumoFiltradoTorcida;
+      filteredMaterial = 'TORCIDA';
+    }
+
     const totalTons = filteredData.reduce((sum, item) => sum + item.Tons, 0);
     
     // Calcular média de progresso baseada na mesma lógica da tabela
@@ -217,10 +262,8 @@ export const useProductionData = () => {
             );
             const planoCaixas = Math.max(Math.round(item.PlanoCaixasFardos / materialRef.Caixas), 1);
             const progresso = Math.max(0, 100 - (produzido / planoCaixas) * 100);
-            
             return sum + progresso;
           }
-          
           return sum;
         }, 0) / filteredData.length
       : 0;
@@ -230,6 +273,9 @@ export const useProductionData = () => {
       qtdTotalFofura: Math.round(qtdTotalFofura * 1000) / 1000,
       qtdTotalTorcida: Math.round(qtdTotalTorcida * 1000) / 1000,
       totalTons: Math.round(totalTons * 100) / 100,
+      dynamicConsumo: Math.round(dynamicConsumo * 1000) / 1000,
+      hasFilterActive,
+      filteredMaterial,
       mediaProgresso: Math.round(mediaProgresso * 10) / 10
     };
   }, [filteredData]);

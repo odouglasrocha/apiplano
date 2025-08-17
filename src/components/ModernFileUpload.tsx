@@ -88,33 +88,33 @@ export const ModernFileUpload: React.FC<ModernFileUploadProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all duration-300
+          border-2 border-dashed rounded-xl p-4 sm:p-8 cursor-pointer transition-all duration-300
           ${getStatusColor()}
-          ${isLoading ? 'cursor-not-allowed opacity-60' : 'hover:shadow-lg transform hover:-translate-y-1'}
+          ${isLoading ? 'cursor-not-allowed opacity-60' : 'hover:shadow-lg transform hover:-translate-y-0.5 sm:hover:-translate-y-1'}
         `}
       >
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
+        <div className="flex flex-col items-center justify-center text-center space-y-3 sm:space-y-4">
           <div className="relative">
             {getStatusIcon()}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-full">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
-            <p className="text-sm text-gray-600 mb-4">{description}</p>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">{title}</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 px-2">{description}</p>
             
             {error ? (
-              <p className="text-sm text-red-600 font-medium">{error}</p>
+              <p className="text-xs sm:text-sm text-red-600 font-medium px-2">{error}</p>
             ) : success ? (
-              <p className="text-sm text-green-600 font-medium">Arquivo carregado com sucesso!</p>
+              <p className="text-xs sm:text-sm text-green-600 font-medium">Arquivo carregado com sucesso!</p>
             ) : (
               <div className="flex items-center justify-center space-x-2 text-blue-600">
                 <Upload className="w-4 h-4" />
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {isLoading ? 'Processando...' : 'Clique ou arraste o arquivo aqui'}
                 </span>
               </div>

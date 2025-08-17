@@ -49,17 +49,17 @@ export const Notification: React.FC<NotificationProps> = ({
   const Icon = icons[type];
 
   return (
-    <div className={`fixed top-4 right-4 max-w-md w-full bg-white border rounded-lg shadow-lg ${colors[type]} transform transition-all duration-300 ease-in-out z-50`}>
-      <div className="p-4">
+    <div className={`fixed top-4 right-4 left-4 sm:left-auto max-w-md w-full sm:w-auto bg-white border rounded-lg shadow-lg ${colors[type]} transform transition-all duration-300 ease-in-out z-50`}>
+      <div className="p-3 sm:p-4">
         <div className="flex items-start">
           <Icon className={`w-5 h-5 ${iconColors[type]} mt-0.5 mr-3 flex-shrink-0`} />
           <div className="flex-1">
-            <h3 className="text-sm font-medium">{title}</h3>
-            <p className="text-sm mt-1 opacity-90">{message}</p>
+            <h3 className="text-xs sm:text-sm font-medium">{title}</h3>
+            <p className="text-xs sm:text-sm mt-1 opacity-90">{message}</p>
           </div>
           <button
             onClick={onClose}
-            className="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            className="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
