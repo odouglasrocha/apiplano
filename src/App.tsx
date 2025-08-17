@@ -157,7 +157,7 @@ function App() {
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                   Plano de Produção
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600">Sistema Interativo de Gestão</p>
+                <p className="text-xs sm:text-sm text-gray-600">Sistema Interativo de Gestão de Produção</p>
               </div>
             </div>
             
