@@ -21,7 +21,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   const cards = [
     {
       title: 'Planejamento por setor',
-      description: ' t',
+      description: 'Tons',
       values: [
         {
           label: 'Fofura',
@@ -46,7 +46,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
     },
     {
       title: 'Qtd Total Fofura & Torcida',
-      description: 'Consumo total em kg',
+      description: 'Consumo total em tons',
       values: [
         {
           label: 'Fofura',
