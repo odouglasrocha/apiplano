@@ -354,6 +354,37 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {(() => {
+                     const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+
+                     if (
+                       materialRef &&
+                       materialRef.Caixas &&
+                       materialRef.Und &&
+                       item.PlanoCaixasFardos !== undefined &&
+                       item.BolsasProduzido !== undefined
+                     ) {
+                       // Calcular progresso invertido (%) - mesma lógica da coluna anterior
+                       const produzido = Math.max(
+                         Math.round(item.PlanoCaixasFardos / materialRef.Caixas) -
+                         Math.round(item.BolsasProduzido / (materialRef.Und * materialRef.Caixas)),
+                         0
+                       );
+                       const planoCaixas = Math.max(Math.round(item.PlanoCaixasFardos / materialRef.Caixas), 1);
+                       const progresso = Math.max(0, 100 - (produzido / planoCaixas) * 100);
+
+                       // Se progresso for 100%, exibir "Concluído"
+                       if (progresso >= 100) {
+                         return (
+                           <div className="text-center">
+                             <span className="text-xs text-green-600 font-semibold block">
+                               Concluído
+                             </span>
+                           </div>
+                         );
+                       }
+                     }
+
+                     // Lógica original para casos não concluídos
                       if (!materialRef || !materialRef.PPm) {
                         return <span className="text-xs text-gray-400">N/A</span>;
                       }
@@ -362,13 +393,6 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                       const planoTotal = item.PlanoCaixasFardos * materialRef.Und;
                       const restante = planoTotal - produzido;
 
-                      if (restante <= 0) {
-                        return (
-                          <span className="text-xs text-green-600 font-semibold">
-                            Concluído
-                          </span>
-                        );
-                      }
 
                       // Tempo total para produção completa com 1 máquina
                       const tempoMinTotalUmaMaquina = planoTotal / materialRef.PPm;
