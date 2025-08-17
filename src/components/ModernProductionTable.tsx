@@ -27,7 +27,9 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
 
   const filteredData = data.filter(item => 
     item.MaterialProducao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.CodMaterialProducao.toString().includes(searchTerm)
+    item.CodMaterialProducao.toString().includes(searchTerm) ||
+    (searchTerm.toLowerCase() === 'fofura' && item.MaterialProducao.toUpperCase().includes('FOFURA')) ||
+    (searchTerm.toLowerCase() === 'torcida' && item.MaterialProducao.toUpperCase().includes('TORCIDA'))
   );
 
   const sortedData = [...filteredData].sort((a, b) => {
@@ -105,7 +107,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar material..."
+              placeholder="Buscar material, código, FOFURA ou TORCIDA..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
@@ -202,12 +204,44 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                    <div className="text-xs sm:text-sm font-semibold text-gray-900">
-                      {item.Tons.toLocaleString('pt-BR', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
-                      })} t
-                    </div>
+                    {(() => {
+                      const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+                      
+                      if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
+                        // Calcular consumo de matéria-prima baseado em BolsasProduzido
+                        const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
+                        const consumoKg = (item.BolsasProduzido * gramagem) / 1000; // Converter para toneladas
+                        
+                        return (
+                          <div>
+                            <div className="text-xs sm:text-sm font-semibold text-gray-900">
+                              {consumoKg.toLocaleString('pt-BR', {
+                                minimumFractionDigits: 3,
+                                maximumFractionDigits: 3
+                              })} t
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Consumo MP
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      // Fallback para o valor original se não houver dados
+                      return (
+                        <div>
+                          <div className="text-xs sm:text-sm font-semibold text-gray-900">
+                            {item.Tons.toLocaleString('pt-BR', { 
+                              minimumFractionDigits: 2, 
+                              maximumFractionDigits: 2 
+                            })} t
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Planejado
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center align-middle">
                     {(() => {
