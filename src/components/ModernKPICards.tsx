@@ -21,21 +21,21 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   const cards = [
     {
       title: 'Planejamento por setor',
-      description: 'Tons',
+      description: ' t',
       values: [
         {
           label: 'Fofura',
           value: kpis.toneladasFofura.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' ton'
+          }) + ' t'
         },
         {
           label: 'Torcida',
           value: kpis.toneladasTorcida.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' ton'
+          }) + ' t'
         }
       ],
       icon: Truck,

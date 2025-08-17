@@ -216,12 +216,12 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                           <div>
                             <div className="text-xs sm:text-sm font-semibold text-gray-900">
                               {consumoKg.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 3,
-                                maximumFractionDigits: 3
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
                               })} t
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              Consumo MP
+                              Planejado
                             </div>
                           </div>
                         );
