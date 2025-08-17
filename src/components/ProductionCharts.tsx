@@ -224,14 +224,12 @@ export const ProductionCharts: React.FC<ProductionChartsProps> = ({ data }) => {
     <div className="space-y-6 sm:space-y-8 mb-6 sm:mb-8">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl mb-3 sm:mb-4 shadow-lg">
-          <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-        </div>
+       
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-          Status de Produção por Material
+          Análise Quantitativa do Status de Produção (Fofura vs. Torcida)
         </h2>
         <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-4">
-          Acompanhamento do progresso de produção separado por categoria de material
+          Métricas Baseadas em Média Aritmética para Conclusão (Fofura vs. Torcida)
         </p>
       </div>
 

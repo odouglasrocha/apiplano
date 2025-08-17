@@ -20,8 +20,8 @@ interface ModernKPICardsProps {
 export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   const cards = [
     {
-      title: 'Planejamento por Categoria',
-      description: 'Toneladas por tipo de produto',
+      title: 'Planejamento por setor',
+      description: 'Tons',
       values: [
         {
           label: 'Fofura',
