@@ -196,6 +196,15 @@ export const useProductionData = () => {
       return sum;
     }, 0);
     
+    // Calcular TONELADAS por categoria - SOMA DIRETA de item.Tons
+    const toneladasFofura = planData
+      .filter(item => item.MaterialProducao && item.MaterialProducao.toUpperCase().includes('FOFURA'))
+      .reduce((sum, item) => sum + (item.Tons || 0), 0);
+    
+    const toneladasTorcida = planData
+      .filter(item => item.MaterialProducao && item.MaterialProducao.toUpperCase().includes('TORCIDA'))
+      .reduce((sum, item) => sum + (item.Tons || 0), 0);
+    
     // ✅ NOVO: Calcular consumo dinâmico baseado no filtro ativo
     const hasFilterFofura = filters.material.toUpperCase().includes('FOFURA');
     const hasFilterTorcida = filters.material.toUpperCase().includes('TORCIDA');
@@ -273,6 +282,8 @@ export const useProductionData = () => {
       qtdTotalFofura: Math.round(qtdTotalFofura * 1000) / 1000,
       qtdTotalTorcida: Math.round(qtdTotalTorcida * 1000) / 1000,
       totalTons: Math.round(totalTons * 100) / 100,
+      toneladasFofura: Number(toneladasFofura.toFixed(2)),
+      toneladasTorcida: Number(toneladasTorcida.toFixed(2)),
       dynamicConsumo: Math.round(dynamicConsumo * 1000) / 1000,
       hasFilterActive,
       filteredMaterial,

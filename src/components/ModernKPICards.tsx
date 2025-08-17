@@ -1,5 +1,6 @@
 import React from 'react';
 import { Package, Truck, Scale, TrendingUp, Target, Clock, Zap, AlertTriangle } from 'lucide-react';
+import { KPICards } from './KPICards';
 
 interface ModernKPICardsProps {
   kpis: {
@@ -7,6 +8,8 @@ interface ModernKPICardsProps {
     qtdTotalFofura: number;
     qtdTotalTorcida: number;
     totalTons: number;
+    toneladasFofura: number;
+    toneladasTorcida: number;
     dynamicConsumo: number;
     hasFilterActive: boolean;
     filteredMaterial: string;
@@ -17,22 +20,22 @@ interface ModernKPICardsProps {
 export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
   const cards = [
     {
-      title: 'Planejamento Fofura & Torcida',
-      description: 'Total em tons',
+      title: 'Planejamento por Categoria',
+      description: 'Toneladas por tipo de produto',
       values: [
         {
           label: 'Fofura',
-          value: kpis.qtdTotalFofura.toLocaleString('pt-BR', {
+          value: kpis.toneladasFofura.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + ' ton'
         },
         {
           label: 'Torcida',
-          value: kpis.qtdTotalTorcida.toLocaleString('pt-BR', {
+          value: kpis.toneladasTorcida.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + ' ton'
         }
       ],
       icon: Truck,
