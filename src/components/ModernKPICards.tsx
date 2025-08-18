@@ -28,14 +28,14 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
           value: kpis.toneladasFofura.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + 't'
         },
         {
           label: 'Torcida',
           value: kpis.toneladasTorcida.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + 't'
         }
       ],
       icon: Truck,
@@ -53,14 +53,14 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
           value: kpis.qtdTotalFofura.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + 't'
         },
         {
           label: 'Torcida',
           value: kpis.qtdTotalTorcida.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) + ' t'
+          }) + 't'
         }
       ],
       icon: Truck,
@@ -71,7 +71,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
     },
        {
       title: 'Qtd a produzir Fofura & Torcida',
-      description: 'Consumo total em tons',
+      description: 'O que está faltando para produzir em tons',
            values: [
         {
           label: 'Fofura',
@@ -86,7 +86,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
             return diferenca.toLocaleString('pt-BR', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
-            }) + ' t';
+            }) + 't';
           })()
         },
         {
@@ -102,7 +102,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
             return diferenca.toLocaleString('pt-BR', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
-            }) + ' t';
+            }) + 't';
           })()
         }
       ],
@@ -129,6 +129,32 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
       changeType: 'positive' as const
     },
     */
+     {
+      title: 'Progresso Médio',
+       values: [
+        {
+          label: 'Eficiência geral',
+          value: kpis.mediaProgresso.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + '%'
+        },
+        {
+          label: 'Produção Total',
+          value: kpis.totalConsumoKg.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + 't'
+        }
+      ],
+      unit: '%',
+      icon: TrendingUp,
+      gradient: 'from-purple-500 to-purple-600',
+      bgGradient: 'from-purple-50 to-purple-100',
+      change: kpis.mediaProgresso > 70 ? '+15%' : '-5%',
+      changeType: kpis.mediaProgresso > 70 ? 'positive' as const : 'negative' as const
+    }
+   /*
       {
       title: 'Progresso Médio',
       value: `${kpis.mediaProgresso.toLocaleString('pt-BR', {
@@ -142,8 +168,8 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
       change: kpis.mediaProgresso > 70 ? '+15%' : '-5%',
       changeType: kpis.mediaProgresso > 70 ? 'positive' as const : 'negative' as const
     }
+      */
   ];
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
       {cards.map((card, index) => {
