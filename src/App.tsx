@@ -276,7 +276,6 @@ function App() {
                 <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">PlanoCaixasFardos</span></li>
                 <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Tons</span></li>
               </ul>
-
                 
                 <ModernFileUpload
                   onFileSelect={handlePlanFileUpload}
