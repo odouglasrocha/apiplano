@@ -9,7 +9,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "git push && npm install && npm run build && pm2 restart all"
+    "deploy": "git pull && npm install && npm run build && pm2 restart all"
   },
   "dependencies": {
     "cors": "^2.8.5",
