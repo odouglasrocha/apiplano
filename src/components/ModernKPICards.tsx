@@ -69,6 +69,51 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
       change: '+8%',
       changeType: 'positive' as const
     },
+       {
+      title: 'Qtd a produzir Fofura & Torcida',
+      description: 'Consumo total em tons',
+           values: [
+        {
+          label: 'Fofura',
+          value: (() => {
+            const diferenca = kpis.toneladasFofura - kpis.qtdTotalFofura;
+            if (diferenca < 0) {
+              return `passou ${Math.abs(diferenca).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}t`;
+            }
+            return diferenca.toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) + ' t';
+          })()
+        },
+        {
+          label: 'Torcida',
+          value: (() => {
+            const diferenca = kpis.toneladasTorcida - kpis.qtdTotalTorcida;
+            if (diferenca < 0) {
+              return `passou ${Math.abs(diferenca).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}t`;
+            }
+            return diferenca.toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) + ' t';
+          })()
+        }
+      ],
+      unit: 't',
+      icon: Scale,
+      gradient: 'from-blue-500 to-blue-600',
+      bgGradient: 'from-blue-50 to-blue-100',
+      change: '+12%',
+      changeType: 'positive' as const
+    },
+    /* Background Pattern 
      {
         title: 'Produção Total',
         value: kpis.totalConsumoKg.toLocaleString('pt-BR', {
@@ -83,6 +128,7 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
       change: '+12%',
       changeType: 'positive' as const
     },
+    */
       {
       title: 'Progresso Médio',
       value: `${kpis.mediaProgresso.toLocaleString('pt-BR', {

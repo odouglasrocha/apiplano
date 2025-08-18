@@ -334,8 +334,8 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                                   return (
                                     <div className="text-xs sm:text-sm text-gray-600">
                                       {consumoKg.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 3,
-                                        maximumFractionDigits: 3,
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
                                         useGrouping: false
                                       })} t
                                     </div>
