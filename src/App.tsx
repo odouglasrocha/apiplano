@@ -267,13 +267,16 @@ function App() {
                   </div>
                   Plano de Produção
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">
-                  Carregue um arquivo Excel com o plano de produção. O arquivo deve conter as colunas: 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">CodMaterialProducao</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">MaterialProducao</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">PlanoCaixasFardos</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Tons</span>.
-                </p>
+              <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">
+                Carregue um arquivo Excel com o plano de produção. O arquivo deve conter as colunas:
+              </p>
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+                <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">CodMaterialProducao</span></li>
+                <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">MaterialProducao</span></li>
+                <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">PlanoCaixasFardos</span></li>
+                <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Tons</span></li>
+              </ul>
+
                 
                 <ModernFileUpload
                   onFileSelect={handlePlanFileUpload}
@@ -293,14 +296,16 @@ function App() {
                   </div>
                   Atualizar Produção
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">
-                  Carregue um arquivo Excel com dados de produção realizada. O arquivo deve conter as colunas: 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">CodMaterialSap</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">TextoBreveMaterial</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Qtd_real_origem</span>, 
-                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Data_de_criacao</span>.
+              <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">
+                  Carregue um arquivo Excel com dados de produção realizada. O arquivo deve conter as colunas:
                 </p>
-                
+                <ul className="list-disc list-inside text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+                  <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">CodMaterialSap</span></li>
+                  <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">TextoBreveMaterial</span></li>
+                  <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Qtd_real_origem</span></li>
+                  <li><span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">Data_de_criacao</span></li>
+                </ul>
+
                 <ModernFileUpload
                   onFileSelect={handleProductionUpdate}
                   title="Atualizar Produção"
