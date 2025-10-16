@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { Factory, Upload, RefreshCw, BarChart3, FileSpreadsheet, Zap } from 'lucide-react';
 import { useProductionData } from './hooks/useProductionData';
 import { ModernFileUpload } from './components/ModernFileUpload';
@@ -6,15 +7,14 @@ import { ProductionCharts } from './components/ProductionCharts';
 import { ModernKPICards } from './components/ModernKPICards';
 import { ModernProductionTable } from './components/ModernProductionTable';
 import { Notification } from './components/Notification';
+import { ReportEmail } from './components/ReportEmail';
 
 function App() {
   const {
     filteredData,
-    filters,
     kpis,
     loading,
     error,
-    updateFilters,
     updatePlanData,
     updateProduction,
     loadPlanData
@@ -31,6 +31,42 @@ function App() {
     plan: { loading: false, success: false, error: '' },
     production: { loading: false, success: false, error: '' }
   });
+  const kpisSummary = `Tons: ${kpis?.totalTons ?? 0} | Progresso médio: ${Math.round((kpis?.mediaProgresso ?? 0) * 100)}%`;
+
+  // Captura em segundo plano da área principal do Dashboard e salva no localStorage
+  const captureTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (activeTab !== 'dashboard') return;
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
+    if (captureTimer.current) {
+      window.clearTimeout(captureTimer.current);
+    }
+    captureTimer.current = window.setTimeout(async () => {
+      try {
+        const rect = mainEl.getBoundingClientRect();
+        const canvas = await html2canvas(document.body, {
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          scale: 1,
+          x: Math.round(window.scrollX + rect.left),
+          y: Math.round(window.scrollY + rect.top),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+        });
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        localStorage.setItem('report-dashboard-image', dataUrl);
+      } catch (_) {
+        // silencioso
+      }
+    }, 300);
+    return () => {
+      if (captureTimer.current) {
+        window.clearTimeout(captureTimer.current);
+        captureTimer.current = null;
+      }
+    };
+  }, [activeTab, filteredData, kpis]);
 
   const handlePlanFileUpload = async (file: File) => {
     setUploadStates(prev => ({
@@ -144,7 +180,7 @@ function App() {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
+    <div id="report-capture" className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12">
@@ -235,10 +271,10 @@ function App() {
           <>
             {/* KPI Cards */}
             <ModernKPICards kpis={kpis} />
-            
+
             {/* Production Charts */}
             <ProductionCharts data={filteredData} />
-            
+
             {/* Production Table */}
             <ModernProductionTable data={filteredData} />
           </>
@@ -313,8 +349,8 @@ function App() {
                   success={uploadStates.production.success}
                   error={uploadStates.production.error}
                 />
-              </div>
             </div>
+          </div>
 
             {/* Instruções */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 sm:p-8">
@@ -344,6 +380,10 @@ function App() {
                   </ul>
                 </div>
               </div>
+            </div>
+            {/* Envio de Relatório por E-mail */}
+            <div className="mt-6">
+              <ReportEmail data={filteredData} kpisSummary={kpisSummary} />
             </div>
           </div>
         )}
