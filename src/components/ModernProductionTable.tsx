@@ -207,17 +207,18 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                     {(() => {
                       const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
                       
-                      if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
+                      if (materialRef && materialRef.Gramagem && materialRef.Und && item.PlanoCaixasFardos !== undefined) {
                         // Calcular consumo de matéria-prima baseado em BolsasProduzido
+                        const und = parseFloat(materialRef.Und.toString().replace(',', '.'));
                         const gramagem = parseFloat(materialRef.Gramagem.toString().replace(',', '.'));
-                        const consumoKg = (item.BolsasProduzido * gramagem) / 1000; // Converter para toneladas
+                        const consumoKg = (item.PlanoCaixasFardos * und * gramagem) / 1000; // Converter para toneladas
                         
                         return (
                           <div>
                             <div className="text-xs sm:text-sm font-semibold text-gray-900">
                               {consumoKg.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1
                               })} t
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
