@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Package, Zap, Droplets, Search } from 'lucide-react';
 import { EnrichedPlanItem } from '../types/production';
 import { materialsData } from '../data/materials';
@@ -17,6 +17,117 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
   const [showIntermediaryModal, setShowIntermediaryModal] = useState(false);
+  const [aromaDifferences, setAromaDifferences] = useState<Record<string, number>>({});
+
+  // Utilidades compartilhadas com o modal
+  const parseNumber = (value: string | number | undefined): number => {
+    if (value === undefined) return 0;
+    if (typeof value === 'number') return value;
+    const raw = String(value).trim();
+    if (raw.includes(',') && !raw.includes('.')) {
+      const normalized = raw.replace(/\./g, '').replace(/,/g, '.');
+      const num = parseFloat(normalized);
+      return isNaN(num) ? 0 : num;
+    }
+    const num = parseFloat(raw);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const AROMAS: { key: string; label: string; predicate: (m: string) => boolean }[] = [
+    { key: 'BACON', label: 'TORCIDA BACON', predicate: (m) => m.includes('TORCIDA') && m.includes('BACON') },
+    { key: 'CEBOLA', label: 'TORCIDA CEBOLA', predicate: (m) => m.includes('TORCIDA') && m.includes('CEBOLA') },
+    { key: 'CHURRASCO', label: 'TORCIDA CHURRASCO', predicate: (m) => m.includes('TORCIDA') && m.includes('CHURRASCO') },
+    { key: 'COSTELA', label: 'TORCIDA COSTELINHA', predicate: (m) => m.includes('TORCIDA') && m.includes('COSTELA') },
+    { key: 'MEXICANA', label: 'TORCIDA MEXICANA', predicate: (m) => m.includes('TORCIDA') && (m.includes('PIMENTA MEX') || m.includes('MEXICANA')) },
+    { key: 'QUEIJO', label: 'TORCIDA QUEIJO', predicate: (m) => m.includes('TORCIDA') && m.includes('QUEIJO') },
+    { key: 'CAMARAO', label: 'TORCIDA CAMARAO', predicate: (m) => m.includes('TORCIDA') && m.includes('CAMARAO') },
+    { key: 'VINAGRETE', label: 'TORCIDA VINAGRETE', predicate: (m) => m.includes('TORCIDA') && m.includes('VINAGRETE') },
+    { key: 'PAO_DE_ALHO', label: 'TORCIDA PAO DE ALHO', predicate: (m) => m.includes('TORCIDA') && m.includes('PAO DE ALHO') },
+  ];
+
+  const getPacoteKgForAroma = (aromaPredicate: (m: string) => boolean): number => {
+    const candidatos = materialsData
+      .filter(m => m.Material.toUpperCase().includes('TORCIDA'))
+      .filter(m => aromaPredicate(m.Material.toUpperCase()))
+      .map(m => parseNumber(m.Pacote))
+      .filter(n => !isNaN(n) && n > 0);
+    if (candidatos.length === 0) return 10;
+    const freq = new Map<number, number>();
+    for (const n of candidatos) freq.set(n, (freq.get(n) || 0) + 1);
+    let escolhido = candidatos[0];
+    let max = 0;
+    for (const [n, f] of freq.entries()) {
+      if (f > max) { max = f; escolhido = n; }
+    }
+    return escolhido;
+  };
+
+  const getGramagemKgForItem = (item: EnrichedPlanItem): number => {
+    let gramagemStr: string | undefined = item.material?.Gramagem;
+    if (!gramagemStr) {
+      const byCode = materialsData.find(m => String(m.Codigo) === String(item.CodMaterialProducao));
+      gramagemStr = byCode?.Gramagem;
+    }
+    if (!gramagemStr) {
+      const name = (item.MaterialProducao || '').toUpperCase();
+      const byName = materialsData.find(m => m.Material.toUpperCase().includes(name));
+      gramagemStr = byName?.Gramagem;
+    }
+    return parseNumber(gramagemStr);
+  };
+
+  const getAromaKeyForMaterial = (nameUpper: string): string | null => {
+    for (const a of AROMAS) {
+      if (a.predicate(nameUpper)) return a.key;
+    }
+    return null;
+  };
+
+  // Função que busca os pacotes salvos e calcula a diferença por aroma para exibir alerta na tabela
+  const refreshAromaDifferences = async () => {
+    try {
+      const resp = await fetch('/api/intermediario');
+      const json = await resp.json();
+      const qtdMap: Record<string, number> = {};
+      if (json?.success && Array.isArray(json.data)) {
+        for (const item of json.data) {
+          const key = String(item?.aromaKey || '').toUpperCase();
+          const val = Number(item?.qtdPacotes || 0);
+          if (!isNaN(val)) qtdMap[key] = val;
+        }
+      }
+
+      const diffMap: Record<string, number> = {};
+      for (const aroma of AROMAS) {
+        const qtdPacotes = qtdMap[aroma.key] || 0;
+        const pacoteKg = getPacoteKgForAroma(aroma.predicate);
+        const tonsIntermediario = (qtdPacotes * pacoteKg) / 1000;
+        const filteredItems = data.filter((it) => {
+          const nameRaw = (it.MaterialProducao || '').toUpperCase();
+          const name = nameRaw.replace(/\s+/g, ' ').trim();
+          return aroma.predicate(name) && name.includes('TORCIDA');
+        });
+        const plannedTons = filteredItems.reduce((sum, it) => sum + (it.Tons || 0), 0);
+        const producedTons = filteredItems.reduce((sum, it) => {
+          const gramagemKg = getGramagemKgForItem(it);
+          const bolsas = it.totalBolsasProduzido ?? it.BolsasProduzido ?? 0;
+          const tons = (bolsas * gramagemKg) / 1000;
+          return sum + tons;
+        }, 0);
+        const faltaPlanoTons = plannedTons - producedTons;
+        const diferenca = tonsIntermediario - faltaPlanoTons;
+        diffMap[aroma.key] = diferenca;
+      }
+      setAromaDifferences(diffMap);
+    } catch (_) {
+      // silencioso
+    }
+  };
+
+  // Atualiza os alertas ao montar/alterar dados do plano
+  useEffect(() => {
+    refreshAromaDifferences();
+  }, [data]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -182,6 +293,30 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 text-xs text-gray-500">
                           <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Gramagem}g</span>
                           <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Und} und/cx</span>
+                          {(() => {
+                            const nameUpper = (item.MaterialProducao || '').toUpperCase();
+                            // Se for FOFURA, não exibir nenhum texto/valor para Estoque
+                            if (nameUpper.includes('FOFURA')) {
+                              return null;
+                            }
+                            const aromaKey = getAromaKeyForMaterial(nameUpper);
+                            const diff = aromaKey ? aromaDifferences[aromaKey] : undefined;
+                            const cls = diff === undefined
+                              ? 'bg-gray-100 text-gray-700'
+                              : diff < 0
+                                ? 'bg-red-100 text-red-700 border border-red-300 animate-pulse'
+                                : 'bg-green-100 text-green-700 border border-green-300';
+                            const label = diff === undefined
+                              ? 'Estoque'
+                              : diff < 0
+                                ? 'Estoque/falta'
+                                : 'Estoque: ok';
+                            return (
+                              <span className={`${cls} px-1 sm:px-2 py-1 rounded-full text-xs`} title={diff !== undefined ? `Diferença: ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} t` : undefined}>
+                                 {label}
+                              </span>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
@@ -572,7 +707,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
       {/* Modal: Estoque Intermediário */}
       <IntermediaryStockModal
         open={showIntermediaryModal}
-        onClose={() => setShowIntermediaryModal(false)}
+        onClose={() => { setShowIntermediaryModal(false); refreshAromaDifferences(); }}
         planData={data}
       />
     </div>

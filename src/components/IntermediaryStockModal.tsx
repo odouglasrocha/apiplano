@@ -79,20 +79,21 @@ const AROMAS: { key: string; label: string; predicate: (m: string) => boolean }[
 ];
 
 // Valores iniciais sugeridos pelo usuário
-const INITIAL_QTD: Record<string, number> = {
-  BACON: 0,
-  CEBOLA: 0,
-  CHURRASCO: 0,
-  COSTELA: 0,
-  MEXICANA: 0,
-  QUEIJO: 0,
-  CAMARAO: 0,
-  VINAGRETE: 0,
-  PAO_DE_ALHO: 0,
+// Permite campo de entrada vazio ("") para digitação sem forçar 0 na UI
+const INITIAL_QTD: Record<string, number | ''> = {
+  BACON: '',
+  CEBOLA: '',
+  CHURRASCO: '',
+  COSTELA: '',
+  MEXICANA: '',
+  QUEIJO: '',
+  CAMARAO: '',
+  VINAGRETE: '',
+  PAO_DE_ALHO: '',
 };
 
 export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ open, onClose, planData }) => {
-  const [quantidades, setQuantidades] = useState<Record<string, number>>(INITIAL_QTD);
+  const [quantidades, setQuantidades] = useState<Record<string, number | ''>>(INITIAL_QTD);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   // Removido pacoteKg global: cada aroma tem seu peso de pacote específico (ex.: BACON = 11 kg; demais = 10 kg)
 
@@ -103,11 +104,11 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
         const resp = await fetch('/api/intermediario');
         const json = await resp.json();
         if (json?.success && Array.isArray(json.data)) {
-          const map: Record<string, number> = { ...INITIAL_QTD };
+          const map: Record<string, number | ''> = { ...INITIAL_QTD };
           for (const item of json.data) {
             const key = String(item?.aromaKey || '').toUpperCase();
             const val = Number(item?.qtdPacotes || 0);
-            if (key in map) map[key] = val;
+            if (key in map) map[key] = isNaN(val) ? '' : val;
           }
           setQuantidades(map);
         }
@@ -121,11 +122,12 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
   // Cálculos por aroma: Tons (intermediário), Falta no Plano (planejado - produzido em tons), Diferença
   const linhas = useMemo(() => {
     return AROMAS.map((aroma) => {
-      const qtdPacotes = quantidades[aroma.key] || 0;
+      const qtdPacotes = quantidades[aroma.key];
+      const qtdPacotesNum = typeof qtdPacotes === 'number' ? qtdPacotes : 0;
       // Pacote (kg) específico para o aroma atual
       const pacoteKgAroma = getPacoteKgForAroma(aroma.predicate);
       // Ex.: BACON possui Pacote = 11,000 kg; demais normalmente 10,000 kg
-      const tonsIntermediario = (qtdPacotes * pacoteKgAroma) / 1000; // kg -> toneladas
+      const tonsIntermediario = (qtdPacotesNum * pacoteKgAroma) / 1000; // kg -> toneladas
 
       // Ajuste: somar SOMENTE os Tons (planejados) por aroma
       // Regra: considerar SOMENTE itens cujo nome contenha "TORCIDA" (excluir FOFURA e quaisquer outros)
@@ -173,19 +175,29 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
   );
 
   const handleChange = async (key: string, value: string) => {
-    const num = parseFloat(value.replace(',', '.'));
-    const safe = isNaN(num) || num < 0 ? 0 : num;
-    // Atualiza UI imediatamente
-    setQuantidades((prev) => ({ ...prev, [key]: safe }));
-    // Auto-salva no backend (substitui valor anterior)
+    const trimmed = value.trim();
+    // Se o usuário limpar o campo, manter vazio na UI e não salvar
+    if (trimmed === '') {
+      setQuantidades((prev) => ({ ...prev, [key]: '' }));
+      return;
+    }
+    const num = parseFloat(trimmed.replace(',', '.'));
+    if (isNaN(num) || num < 0) {
+      // valor inválido mantém vazio
+      setQuantidades((prev) => ({ ...prev, [key]: '' }));
+      return;
+    }
+    // Atualiza UI imediatamente com número válido
+    setQuantidades((prev) => ({ ...prev, [key]: num }));
+    // Auto-salva no backend (somente quando número válido)
     try {
       await fetch(`/api/intermediario/${key}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qtdPacotes: safe })
+        body: JSON.stringify({ qtdPacotes: num })
       });
     } catch (_) {
-      // silencioso: em caso de falha, mantemos UI e podemos re-tentar manualmente se necessário
+      // silencioso
     }
   };
 
@@ -232,10 +244,11 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
                   </td>
                   <td className="px-4 py-3">
                     <input
-                      type="number"
+                      type="text"
                       inputMode="numeric"
+                      placeholder=""
                       className="w-24 sm:w-28 md:w-32 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={linha.qtdPacotes}
+                      value={linha.qtdPacotes === '' ? '' : linha.qtdPacotes}
                       onChange={(e) => handleChange(linha.key, e.target.value)}
                     />
                   </td>
