@@ -6,6 +6,7 @@ const XLSX = require('xlsx');
 const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const https = require('https');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -264,9 +265,93 @@ function buildReportHtml(items, hasScreenshot, summaryHtml, dateTimeStr) {
   </div>`;
 }
 
+// === Teams Webhook Integration ===
+function htmlToPlainText(html) {
+  if (!html || typeof html !== 'string') return '';
+  try {
+    return html
+      .replace(/<br\s*\/?>(?=\s)/gi, '\n')
+      .replace(/<li\b[^>]*>/gi, '• ')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<p\b[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<h\d\b[^>]*>/gi, '**')
+      .replace(/<\/h\d>/gi, '**\n')
+      .replace(/<strong\b[^>]*>/gi, '**')
+      .replace(/<\/strong>/gi, '**')
+      .replace(/<em\b[^>]*>/gi, '*')
+      .replace(/<\/em>/gi, '*')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+\n/g, '\n')
+      .trim();
+  } catch (_) {
+    return html;
+  }
+}
+
+async function sendTeamsMessage(summaryHtml, dateTimeStr) {
+  const webhook = process.env.TEAMS_WEBHOOK_URL;
+  if (!webhook) {
+    return { ok: false, reason: 'TEAMS_WEBHOOK_URL não configurado' };
+  }
+
+  const title = '📊 Relatório de Produção – Embalagem Torcida';
+  const intro = `Data/Hora: ${dateTimeStr}`;
+  const plain = htmlToPlainText(summaryHtml || '');
+  const text = `**${title}**\n${intro}\n\n${plain}`.slice(0, 25000); // limite seguro
+
+  const payload = { text };
+
+  // Preferir fetch se disponível (Node >=18), caso contrário usar https
+  if (typeof fetch === 'function') {
+    const resp = await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new Error(`Teams webhook falhou: ${resp.status} ${resp.statusText} ${body}`);
+    }
+    return { ok: true };
+  }
+
+  // Fallback com https
+  const url = new URL(webhook);
+  const data = JSON.stringify(payload);
+  const options = {
+    hostname: url.hostname,
+    path: url.pathname + url.search,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(data),
+    },
+  };
+
+  await new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8');
+        if (res.statusCode >= 200 && res.statusCode < 300) return resolve();
+        reject(new Error(`Teams webhook falhou: ${res.statusCode} ${body}`));
+      });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+
+  return { ok: true };
+}
+
 app.post('/api/email/send', async (req, res) => {
   try {
-    const { toIds = [], ccIds = [], bccIds = [], toEmails = [], ccEmails = [], bccEmails = [], screenshotBase64, tableData = [], summaryHtml } = req.body || {};
+    const { toIds = [], ccIds = [], bccIds = [], toEmails = [], ccEmails = [], bccEmails = [], screenshotBase64, tableData = [], summaryHtml, sendToTeams } = req.body || {};
 
     // Se e-mails diretos foram fornecidos, usa-os. Caso contrário, tenta resolver pelos IDs cadastrados.
     let finalTo = Array.isArray(toEmails) ? toEmails.filter(e => typeof e === 'string') : [];
@@ -310,8 +395,20 @@ app.post('/api/email/send', async (req, res) => {
       attachments,
     });
 
+    // Tenta enviar também para o Teams (canal via Webhook), caso configurado ou solicitado
+    let teamsStatus = 'skipped';
+    if (process.env.TEAMS_WEBHOOK_URL && (sendToTeams === true || sendToTeams === undefined)) {
+      try {
+        await sendTeamsMessage(summaryHtml, nowStr);
+        teamsStatus = 'success';
+      } catch (e) {
+        teamsStatus = 'error';
+        console.error('⚠️ Erro ao publicar no Teams:', e?.message || e);
+      }
+    }
+
     await EmailLog.create({ status: 'success', to: Array.isArray(toIds) ? toIds : [], cc: Array.isArray(ccIds) ? ccIds : [], bcc: Array.isArray(bccIds) ? bccIds : [], messageId: info.messageId });
-    return res.status(200).json({ success: true, message: 'Relatório enviado com sucesso' });
+    return res.status(200).json({ success: true, message: 'Relatório enviado com sucesso', teamsStatus });
   } catch (err) {
     console.error('❌ Erro no envio de e-mail:', err);
     try {
