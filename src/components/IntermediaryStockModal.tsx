@@ -25,13 +25,29 @@ const parseNumber = (value: string | number | undefined): number => {
   return isNaN(num) ? 0 : num;
 };
 
-// Obtém o peso por pacote (em kg) a partir do materialsData
-const getPacoteKg = (): number => {
-  // Todos os materiais atuais possuem "Pacote": "10,000" => 10 kg
-  // Mantemos flexível caso mude futuramente
-  const anyMaterial = materialsData[0];
-  const pacote = parseNumber(anyMaterial?.Pacote);
-  return pacote; // já está em kg
+// Obtém o peso por pacote (em kg) para um aroma específico a partir do materialsData
+// Estratégia: filtra materiais TORCIDA que correspondem ao aroma e escolhe o valor de "Pacote" mais frequente.
+// Fallback: se não encontrar, usa 10 kg (padrão) para evitar cálculos incorretos.
+const getPacoteKgForAroma = (aromaPredicate: (m: string) => boolean): number => {
+  const candidatos = materialsData
+    .filter(m => m.Material.toUpperCase().includes('TORCIDA'))
+    .filter(m => aromaPredicate(m.Material.toUpperCase()))
+    .map(m => parseNumber(m.Pacote))
+    .filter(n => !isNaN(n) && n > 0);
+
+  if (candidatos.length === 0) {
+    return 10; // fallback seguro
+  }
+
+  // Escolhe o valor mais frequente (mode)
+  const freq = new Map<number, number>();
+  for (const n of candidatos) freq.set(n, (freq.get(n) || 0) + 1);
+  let escolhido = candidatos[0];
+  let max = 0;
+  for (const [n, f] of freq.entries()) {
+    if (f > max) { max = f; escolhido = n; }
+  }
+  return escolhido;
 };
 
 // Obtém a gramagem em KG por bolsa para um item, com fallbacks robustos
@@ -78,7 +94,7 @@ const INITIAL_QTD: Record<string, number> = {
 export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ open, onClose, planData }) => {
   const [quantidades, setQuantidades] = useState<Record<string, number>>(INITIAL_QTD);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
-  const pacoteKg = getPacoteKg(); // 10 kg por pacote atualmente
+  // Removido pacoteKg global: cada aroma tem seu peso de pacote específico (ex.: BACON = 11 kg; demais = 10 kg)
 
   // Carrega valores salvos da base test.intermediario ao abrir o modal
   useEffect(() => {
@@ -106,7 +122,10 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
   const linhas = useMemo(() => {
     return AROMAS.map((aroma) => {
       const qtdPacotes = quantidades[aroma.key] || 0;
-      const tonsIntermediario = (qtdPacotes * pacoteKg) / 1000; // 10 kg => 0,01 t por pacote
+      // Pacote (kg) específico para o aroma atual
+      const pacoteKgAroma = getPacoteKgForAroma(aroma.predicate);
+      // Ex.: BACON possui Pacote = 11,000 kg; demais normalmente 10,000 kg
+      const tonsIntermediario = (qtdPacotes * pacoteKgAroma) / 1000; // kg -> toneladas
 
       // Ajuste: somar SOMENTE os Tons (planejados) por aroma
       // Regra: considerar SOMENTE itens cujo nome contenha "TORCIDA" (excluir FOFURA e quaisquer outros)
@@ -146,7 +165,7 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
         producedTons,
       };
     });
-  }, [planData, pacoteKg, quantidades]);
+  }, [planData, quantidades]);
 
   const totalMezaninoTons = useMemo(
     () => linhas.reduce((sum, l) => sum + l.tonsIntermediario, 0),
@@ -179,7 +198,7 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div>
             <h2 className="text-lg font-bold text-gray-800">Estoque Intermediário • Aroma</h2>
-            <p className="text-sm text-gray-500">Digite a quantidade de pacotes; os tons são calculados com base em data/materials → Pacote</p>
+            <p className="text-sm text-gray-500">Digite a quantidade de pacotes; os tons usam o peso de "Pacote" por aroma (materials.ts). Ex.: Bacon = 11 kg por pacote; demais = 10 kg.</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
             <X className="w-5 h-5 text-gray-600" />
@@ -222,17 +241,17 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm font-semibold text-gray-900">
-                      {linha.tonsIntermediario.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                      {linha.tonsIntermediario.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-gray-700">
-                      {linha.faltaPlanoTons.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                      {linha.faltaPlanoTons.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-sm font-semibold ${linha.diferenca >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {linha.diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                      {linha.diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
                     </span>
                   </td>
                 </tr>
