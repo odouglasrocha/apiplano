@@ -364,8 +364,8 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                             const label = diff === undefined
                               ? 'Estoque'
                               : diff < 0
-                                ? 'Estoque Mezanino: Falta'
-                                : 'Estoque Mezanino: Ok';
+                                ? 'Estoque Mezanino: Pendente 🚨'
+                                : 'Estoque Mezanino: OK ✅';
                             return (
                               <span className={`${cls} px-1 sm:px-2 py-1 rounded-full text-xs`} title={diff !== undefined ? `Diferença: ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} t` : undefined}>
                                  {label}
