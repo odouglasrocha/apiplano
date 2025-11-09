@@ -1,9 +1,9 @@
 import { Material } from '../types/production';
 
 export const materialsData: Material[] = [
-  { "Codigo": "300061751", "Material": "TORCIDA BACON 35GX26 PP", "Gramagem": "0,035", "Und": 26, "Caixas": 150, "PPm": 65, "Pacote": "10,000", "Pallet": 35 },
-  { "Codigo": "300061750", "Material": "TORCIDA BACON 60GX24 PP", "Gramagem": "0,060", "Und": 24, "Caixas": 135, "PPm": 65, "Pacote": "10,000", "Pallet": 35 },
-   { "Codigo": "300061635", "Material": "TORCIDA BACON 420GX16 PP", "Gramagem": "0,420", "Und": 16, "Caixas": 21, "PPm": 30, "Pacote": "10,000", "Pallet": 35 },
+  { "Codigo": "300061751", "Material": "TORCIDA BACON 35GX26 PP", "Gramagem": "0,035", "Und": 26, "Caixas": 150, "PPm": 65, "Pacote": "11,000", "Pallet": 35 },
+  { "Codigo": "300061750", "Material": "TORCIDA BACON 60GX24 PP", "Gramagem": "0,060", "Und": 24, "Caixas": 135, "PPm": 65, "Pacote": "11,000", "Pallet": 35 },
+   { "Codigo": "300061635", "Material": "TORCIDA BACON 420GX16 PP", "Gramagem": "0,420", "Und": 16, "Caixas": 21, "PPm": 30, "Pacote": "11,000", "Pallet": 35 },
    
   { "Codigo": "300061778", "Material": "TORCIDA CHURRASCO 60GX24 PP", "Gramagem": "0,060", "Und": 24, "Caixas": 135, "PPm": 75, "Pacote": "10,000", "Pallet": 35 },
   { "Codigo": "300061779", "Material": "TORCIDA CHURRASCO 35GX26 PP", "Gramagem": "0,035", "Und": 26, "Caixas": 150, "PPm": 75, "Pacote": "10,000", "Pallet": 35 },
