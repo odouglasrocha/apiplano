@@ -262,6 +262,9 @@ function buildReportHtml(items, hasScreenshot, summaryHtml, dateTimeStr) {
     ${summaryBlock}
     ${screenshotBlock}
     ${tableBlock}
+    <div style="margin-top:16px;padding-top:8px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px">
+      Sistema: <a href="${process.env.SYSTEM_URL || 'https://planing-ita.com/'}" style="color:#2563eb;text-decoration:none">${process.env.SYSTEM_URL || 'https://planing-ita.com/'}</a>
+    </div>
   </div>`;
 }
 
@@ -291,6 +294,21 @@ function htmlToPlainText(html) {
   }
 }
 
+function htmlToTeamsConnectorText(html) {
+  const plain = htmlToPlainText(html);
+  // Converter para markdown que o Teams reconhece (listas com "- ") e reforçar quebras de linha
+  let md = plain
+    .replace(/(Itens TORCIDA somados no plano:)\s*/i, '$1\n')
+    // Cada ocorrência de bullet vira início de linha com "- "
+    .replace(/\s*•\s/g, '\n- ')
+    // Garantir que a linha de resumo fique separada
+    .replace(/\sResumo:/, '\n\nResumo:')
+    // Normalizar múltiplas quebras
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return md;
+}
+
 async function sendTeamsMessage(summaryHtml, dateTimeStr) {
   const webhook = process.env.TEAMS_WEBHOOK_URL;
   if (!webhook) {
@@ -298,11 +316,30 @@ async function sendTeamsMessage(summaryHtml, dateTimeStr) {
   }
 
   const title = '📊 Relatório de Produção – Embalagem Torcida';
-  const intro = `Data/Hora: ${dateTimeStr}`;
-  const plain = htmlToPlainText(summaryHtml || '');
-  const text = `**${title}**\n${intro}\n\n${plain}`.slice(0, 25000); // limite seguro
-
-  const payload = { text };
+  const intro = `Segue o relatório de produção e data e horário do dia: ${dateTimeStr}.`;
+  const sectionTitle = 'Resumo consolidado do plano';
+  const connectorText = htmlToTeamsConnectorText(summaryHtml || '');
+  const systemUrl = process.env.SYSTEM_URL || 'https://planing-ita.com/';
+  // Payload no formato Office 365 Connector Card (suportado por Incoming Webhook do Teams)
+  const payload = {
+    '@type': 'MessageCard',
+    '@context': 'https://schema.org/extensions',
+    summary: title,
+    title,
+    themeColor: '0078D7',
+    sections: [
+      { text: intro, markdown: true },
+      { title: sectionTitle, text: connectorText, markdown: true },
+      { text: `Sistema: ${systemUrl}`, markdown: true }
+    ],
+    potentialAction: [
+      {
+        '@type': 'OpenUri',
+        name: 'Abrir sistema',
+        targets: [{ os: 'default', uri: systemUrl }]
+      }
+    ]
+  };
 
   // Preferir fetch se disponível (Node >=18), caso contrário usar https
   if (typeof fetch === 'function') {

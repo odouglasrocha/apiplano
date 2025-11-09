@@ -7,7 +7,6 @@ import { ProductionCharts } from './components/ProductionCharts';
 import { ModernKPICards } from './components/ModernKPICards';
 import { ModernProductionTable } from './components/ModernProductionTable';
 import { Notification } from './components/Notification';
-import { ReportEmail } from './components/ReportEmail';
 
 function App() {
   const {
@@ -31,7 +30,6 @@ function App() {
     plan: { loading: false, success: false, error: '' },
     production: { loading: false, success: false, error: '' }
   });
-  const kpisSummary = `Tons: ${kpis?.totalTons ?? 0} | Progresso médio: ${Math.round((kpis?.mediaProgresso ?? 0) * 100)}%`;
 
   // Captura em segundo plano da área principal do Dashboard e salva no localStorage
   const captureTimer = useRef<number | null>(null);
@@ -381,10 +379,7 @@ function App() {
                 </div>
               </div>
             </div>
-            {/* Envio de Relatório por E-mail */}
-            <div className="mt-6">
-              <ReportEmail data={filteredData} kpisSummary={kpisSummary} />
-            </div>
+            {/* Envio de Relatório por E-mail removido da página principal; permanece disponível via modal acionado no botão "Enviar e-mail" na tabela. */}
           </div>
         )}
       </main>
