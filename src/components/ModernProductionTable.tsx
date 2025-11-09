@@ -4,6 +4,7 @@ import { EnrichedPlanItem } from '../types/production';
 import { materialsData } from '../data/materials';
 import logoMotor from '../public/logo-motor.png';
 import { IntermediaryStockModal } from './IntermediaryStockModal';
+import { EmailReportModal } from './EmailReportModal';
 
 
 interface ModernProductionTableProps {
@@ -17,6 +18,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
   const [showIntermediaryModal, setShowIntermediaryModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [aromaDifferences, setAromaDifferences] = useState<Record<string, number>>({});
 
   // Utilidades compartilhadas com o modal
@@ -198,6 +200,53 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
     return 'bg-red-100';
   };
 
+  // === Resumo consolidado para e-mail ===
+  const formatTons = (val: number) => {
+    return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const computePlannedTons = (item: EnrichedPlanItem) => {
+    const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+    if (materialRef && materialRef.Gramagem && materialRef.Und && item.PlanoCaixasFardos !== undefined) {
+      const und = parseFloat(String(materialRef.Und).replace(',', '.'));
+      const gramagem = parseFloat(String(materialRef.Gramagem).replace(',', '.'));
+      const consumoTons = (item.PlanoCaixasFardos * und * gramagem) / 1000; // kg -> tons
+      return consumoTons;
+    }
+    return item.Tons || 0;
+  };
+
+  const computeProducedTons = (item: EnrichedPlanItem) => {
+    const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
+    if (materialRef && materialRef.Gramagem && item.BolsasProduzido !== undefined) {
+      const gramagem = parseFloat(String(materialRef.Gramagem).replace(',', '.'));
+      const bolsas = item.totalBolsasProduzido ?? item.BolsasProduzido ?? 0;
+      const consumoTons = (bolsas * gramagem) / 1000; // kg -> tons
+      return consumoTons;
+    }
+    return 0;
+  };
+
+  const summaryHtml = (() => {
+    // Apenas itens TORCIDA devem ser enviados no resumo por e-mail
+    const torcidaData = data.filter((it) => /TORCIDA/i.test(it.MaterialProducao || ''));
+    const lines = torcidaData.map((it) => {
+      const planned = computePlannedTons(it);
+      const produced = computeProducedTons(it);
+      return `<li> ${it.MaterialProducao} — Tons: ${formatTons(planned)} Produzido Tons: ${formatTons(produced)}t </li>`;
+    }).join('');
+    const totals = torcidaData.reduce((acc, it) => {
+      acc.planned += computePlannedTons(it);
+      acc.produced += computeProducedTons(it);
+      return acc;
+    }, { planned: 0, produced: 0 });
+    const falta = Math.max(totals.planned - totals.produced, 0);
+    return `
+      <div><div style="font-weight:600">Itens TORCIDA somados no plano:</div><ul style="margin:6px 0 8px 18px;">${lines}</ul>
+      <div><span style="font-weight:600">Resumo:</span> Planejado: ${formatTons(totals.planned)}t · Produzido: ${formatTons(totals.produced)}t · Falta: ${formatTons(falta)}t.</div></div>
+    `;
+  })();
+
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full">
       {/* Header */}
@@ -217,26 +266,33 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
           
           {/* Search + Botão Estoque Intermediário */}
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar material, código, FOFURA ou TORCIDA..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowIntermediaryModal(true)}
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Estoque Intermediário
-            </button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar material, código, FOFURA ou TORCIDA..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+            />
           </div>
+          <button
+            type="button"
+            onClick={() => setShowIntermediaryModal(true)}
+            className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Estoque Intermediário
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowEmailModal(true)}
+            className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            Enviar e-mail
+          </button>
         </div>
       </div>
+    </div>
       
       {/* Table */}
       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -699,7 +755,13 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
       {/* Footer */}
       <div className="bg-gray-50 px-4 sm:px-8 py-2 sm:py-3 border-t border-gray-200">
         <div className="text-xs sm:text-sm text-gray-500 text-center">
-          © 2025 Orlando Douglas Rocha - orlando.rocha@pepsico.com | Sistema de Planejamento de Produção
+          {(() => {
+            const year = new Date().getFullYear();
+            const contactName = (import.meta.env.VITE_CONTACT_NAME || '').trim();
+            const contactEmail = (import.meta.env.VITE_CONTACT_EMAIL || '').trim();
+            const contact = contactEmail ? ` | Contato: ${contactName ? contactName + ' ' : ''}<${contactEmail}>` : '';
+            return `© ${year} Sistema de Planejamento de Produção${contact}`;
+          })()}
         </div>
       </div>
 
@@ -708,6 +770,14 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
         open={showIntermediaryModal}
         onClose={() => { setShowIntermediaryModal(false); refreshAromaDifferences(); }}
         planData={data}
+      />
+
+      {/* Modal: Envio de e-mail */}
+      <EmailReportModal
+        open={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        data={data}
+        summaryHtml={summaryHtml}
       />
     </div>
   );

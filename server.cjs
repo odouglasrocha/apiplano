@@ -235,19 +235,8 @@ app.post('/api/email/recipients', requireAuth, async (req, res) => {
   }
 });
 
-function buildReportHtml(items, hasScreenshot) {
-  const rows = (Array.isArray(items) ? items : []).map(item => `
-    <tr>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Codigo ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Material ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Plano ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Toneladas ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.AProduzir ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Kpis ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.Progresso ?? ''}</td>
-      <td style="border:1px solid #e5e7eb;padding:8px;color:#1f2937">${item.TempoEst ?? ''}</td>
-    </tr>
-  `).join('');
+function buildReportHtml(items, hasScreenshot, summaryHtml, dateTimeStr) {
+  // Tabela removida do corpo do e-mail conforme solicitado.
 
   const screenshotBlock = hasScreenshot ? `
     <div style="margin-top:16px;padding:12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb">
@@ -256,81 +245,78 @@ function buildReportHtml(items, hasScreenshot) {
     </div>
   ` : '';
 
-  const tableBlock = hasScreenshot ? '' : `
-    <div style="margin-top:16px">
-      <table style="border-collapse:collapse;width:100%;font-size:14px">
-        <thead>
-          <tr style="background:#1f2937;color:#ffffff">
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Código</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Material</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Plano de Produção</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Toneladas</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">A Produzir</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">KPIs</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Progresso</th>
-            <th style="border:1px solid #4b5563;padding:8px;text-align:left">Tempo Est.</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    </div>`;
+  const tableBlock = '';
+
+  const summaryBlock = summaryHtml ? `
+    <div style="margin:16px 0;padding:12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb">
+      <h3 style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;font-size:16px;color:#1f2937;margin:0 0 8px 0">Resumo consolidado do plano</h3>
+      <div style="font-size:14px;color:#374151">${summaryHtml}</div>
+    </div>
+  ` : '';
 
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:#ffffff;color:#111827">
-    <h2 style="font-size:20px;margin:0;color:#111827">📊 Relatório de Produção – SIGP</h2>
-    <p style="margin:12px 0;color:#374151">Segue o relatório de produção com a captura da tela${hasScreenshot ? '' : ' e a tabela consolidada'}.</p>
+    <h2 style="font-size:20px;margin:0;color:#111827">📊 Relatório de Produção – Embalagem Torcida</h2>
+    <p style="margin:12px 0;color:#374151">Segue o relatório de produção e data e horário do dia: ${dateTimeStr}.${hasScreenshot ? ' A captura da tela foi anexada abaixo.' : ''}</p>
+    ${summaryBlock}
     ${screenshotBlock}
     ${tableBlock}
   </div>`;
 }
 
-app.post('/api/email/send', requireAuth, async (req, res) => {
+app.post('/api/email/send', async (req, res) => {
   try {
-    const { toIds = [], ccIds = [], bccIds = [], screenshotBase64, tableData = [] } = req.body || {};
-    if (!Array.isArray(toIds) || toIds.length === 0) {
-      return res.status(400).json({ success: false, message: 'Informe ao menos um destinatário' });
+    const { toIds = [], ccIds = [], bccIds = [], toEmails = [], ccEmails = [], bccEmails = [], screenshotBase64, tableData = [], summaryHtml } = req.body || {};
+
+    // Se e-mails diretos foram fornecidos, usa-os. Caso contrário, tenta resolver pelos IDs cadastrados.
+    let finalTo = Array.isArray(toEmails) ? toEmails.filter(e => typeof e === 'string') : [];
+    let finalCc = Array.isArray(ccEmails) ? ccEmails.filter(e => typeof e === 'string') : [];
+    let finalBcc = Array.isArray(bccEmails) ? bccEmails.filter(e => typeof e === 'string') : [];
+
+    if ((!finalTo || finalTo.length === 0) && Array.isArray(toIds) && toIds.length) {
+      const [toRecs, ccRecs, bccRecs] = await Promise.all([
+        Recipient.find({ _id: { $in: toIds } }),
+        Recipient.find({ _id: { $in: ccIds } }),
+        Recipient.find({ _id: { $in: bccIds } }),
+      ]);
+      finalTo = toRecs.map(r => decryptEmail(r.emailEnc));
+      finalCc = ccRecs.map(r => decryptEmail(r.emailEnc));
+      finalBcc = bccRecs.map(r => decryptEmail(r.emailEnc));
     }
 
-    const [toRecs, ccRecs, bccRecs] = await Promise.all([
-      Recipient.find({ _id: { $in: toIds } }),
-      Recipient.find({ _id: { $in: ccIds } }),
-      Recipient.find({ _id: { $in: bccIds } }),
-    ]);
+    if (!finalTo || finalTo.length === 0) {
+      return res.status(400).json({ success: false, message: 'Informe ao menos um destinatário (Para)' });
+    }
 
-    const toEmails = toRecs.map(r => decryptEmail(r.emailEnc));
-    const ccEmails = ccRecs.map(r => decryptEmail(r.emailEnc));
-    const bccEmails = bccRecs.map(r => decryptEmail(r.emailEnc));
-
-    const html = buildReportHtml(tableData, Boolean(screenshotBase64));
+    const nowStr = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour12: false });
+    const html = buildReportHtml(tableData, Boolean(screenshotBase64), summaryHtml, nowStr);
 
     const attachments = [];
     if (screenshotBase64 && typeof screenshotBase64 === 'string') {
       const base64 = screenshotBase64.includes(',') ? screenshotBase64.split(',').pop() : screenshotBase64;
       const isJpeg = screenshotBase64.startsWith('data:image/jpeg');
-      const filename = isJpeg ? 'relatorio-sigp.jpg' : 'relatorio-sigp.png';
+      const filename = isJpeg ? 'relatorio-embalagem-torcida.jpg' : 'relatorio-embalagem-torcida.png';
       const contentType = isJpeg ? 'image/jpeg' : 'image/png';
       attachments.push({ filename, content: base64, encoding: 'base64', cid: 'sigp-screenshot', contentType });
     }
 
     const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-      to: toEmails,
-      cc: ccEmails.length ? ccEmails : undefined,
-      bcc: bccEmails.length ? bccEmails : undefined,
-      subject: '📊 Relatório de Produção – SIGP',
+      to: finalTo,
+      cc: finalCc && finalCc.length ? finalCc : undefined,
+      bcc: finalBcc && finalBcc.length ? finalBcc : undefined,
+      subject: '📊 Relatório de Produção – Embalagem Torcida',
       html,
       attachments,
     });
 
-    await EmailLog.create({ status: 'success', to: toIds, cc: ccIds, bcc: bccIds, messageId: info.messageId });
+    await EmailLog.create({ status: 'success', to: Array.isArray(toIds) ? toIds : [], cc: Array.isArray(ccIds) ? ccIds : [], bcc: Array.isArray(bccIds) ? bccIds : [], messageId: info.messageId });
     return res.status(200).json({ success: true, message: 'Relatório enviado com sucesso' });
   } catch (err) {
     console.error('❌ Erro no envio de e-mail:', err);
     try {
       const { toIds = [], ccIds = [], bccIds = [] } = req.body || {};
-      await EmailLog.create({ status: 'error', to: toIds, cc: ccIds, bcc: bccIds, error: err?.message || 'Erro desconhecido' });
+      await EmailLog.create({ status: 'error', to: Array.isArray(toIds) ? toIds : [], cc: Array.isArray(ccIds) ? ccIds : [], bcc: Array.isArray(bccIds) ? bccIds : [], error: err?.message || 'Erro desconhecido' });
     } catch (_) {}
     return res.status(500).json({ success: false, message: 'Falha ao enviar o relatório. Tente novamente mais tarde.' });
   }
