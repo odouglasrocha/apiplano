@@ -776,7 +776,6 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
       <EmailReportModal
         open={showEmailModal}
         onClose={() => setShowEmailModal(false)}
-        data={data}
         summaryHtml={summaryHtml}
       />
     </div>

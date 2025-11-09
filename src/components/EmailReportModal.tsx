@@ -1,16 +1,14 @@
 import React from 'react';
 import { X, Mail } from 'lucide-react';
-import { EnrichedPlanItem } from '../types/production';
 import { ReportEmail } from './ReportEmail';
 
 interface EmailReportModalProps {
   open: boolean;
   onClose: () => void;
-  data: EnrichedPlanItem[];
   summaryHtml: string;
 }
 
-export const EmailReportModal: React.FC<EmailReportModalProps> = ({ open, onClose, data, summaryHtml }) => {
+export const EmailReportModal: React.FC<EmailReportModalProps> = ({ open, onClose, summaryHtml }) => {
   if (!open) return null;
 
   return (
@@ -29,7 +27,7 @@ export const EmailReportModal: React.FC<EmailReportModalProps> = ({ open, onClos
 
         {/* Content */}
         <div className="px-4 sm:px-6 py-4 overflow-y-auto flex-1">
-          <ReportEmail data={data} summaryHtml={summaryHtml} />
+          <ReportEmail summaryHtml={summaryHtml} />
         </div>
       </div>
     </div>

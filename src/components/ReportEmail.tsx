@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { EnrichedPlanItem } from '../types/production';
 
 // Removido: interface RecipientAlias
 // Este tipo era usado no fluxo antigo de seleção por apelidos/IDs.
 // Como o envio agora utiliza e-mails diretos (Para/CC/BCC), não há uso atual e foi removido para evitar o warning TS6196.
 
 interface ReportEmailProps {
-  data: EnrichedPlanItem[];
-  kpisSummary?: string;
   summaryHtml?: string; // Bloco HTML com resumo consolidado (itens somados e totais)
 }
 
-export const ReportEmail: React.FC<ReportEmailProps> = ({ data, kpisSummary, summaryHtml }) => {
+export const ReportEmail: React.FC<ReportEmailProps> = ({ summaryHtml }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [toInput, setToInput] = useState('');
@@ -68,7 +65,7 @@ export const ReportEmail: React.FC<ReportEmailProps> = ({ data, kpisSummary, sum
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
-      <h3 className="text-lg font-semibold text-gray-800">Envio de Relatório de Produção – SIGP</h3>
+      <h3 className="text-lg font-semibold text-gray-800">Envio de Relatório de Produção – Embalagem Torcida</h3>
       <p className="text-gray-600 text-sm mb-3">Informe os e-mails dos destinatários. Separe múltiplos e-mails por vírgula, ponto e vírgula ou quebra de linha.</p>
       {feedback && (
         <div className={`text-sm mb-2 ${feedback.type === 'error' ? 'text-red-600' : feedback.type === 'success' ? 'text-green-600' : 'text-gray-700'}`}>{feedback.message}</div>
