@@ -210,7 +210,7 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div>
             <h2 className="text-lg font-bold text-gray-800">Estoque Intermediário • Aroma</h2>
-            <p className="text-sm text-gray-500">Digite a quantidade de pacotes; os tons usam o peso de "Pacote" por aroma (materials.ts). Ex.: Bacon = 11 kg por pacote; demais = 10 kg.</p>
+            <p className="text-sm text-gray-500">Digite a quantidade de pacotes produzido e armazenados no mezanino.</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
             <X className="w-5 h-5 text-gray-600" />

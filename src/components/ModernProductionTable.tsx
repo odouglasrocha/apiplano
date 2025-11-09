@@ -331,7 +331,25 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
           <tbody className="divide-y divide-gray-100">
             {paginatedData.map((item) => {
               const materialRef = materialsData.find(m => m.Codigo === item.CodMaterialProducao.toString());
-              
+
+              // Calcula o valor da coluna "A Produzir" para a linha atual.
+              // Regra: mesma lógica usada na coluna A Produzir (diferença entre pallets planejados e produzidos).
+              // Quando os dados necessários não existem, a coluna A Produzir exibe 0; aqui seguimos a mesma regra.
+              const aProduzir = (() => {
+                if (
+                  materialRef &&
+                  materialRef.Caixas &&
+                  typeof materialRef.Und === 'number' &&
+                  item.PlanoCaixasFardos !== undefined &&
+                  item.BolsasProduzido !== undefined
+                ) {
+                  const valor1 = item.PlanoCaixasFardos / materialRef.Caixas;
+                  const valor2 = item.BolsasProduzido / (materialRef.Und * materialRef.Caixas);
+                  return Math.round(valor1) - Math.round(valor2);
+                }
+                return 0;
+              })();
+
               return (
                 <tr key={item._id || item.CodMaterialProducao} className="hover:bg-gray-50 transition-colors duration-200 group">
                   <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
@@ -341,13 +359,13 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4">
-                   <div>
+                    <div>
                       <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-1 max-w-[150px] sm:max-w-none overflow-hidden text-ellipsis">
                         {item.MaterialProducao}
                       </div>
-                      {materialRef && (
+                      {materialRef && aProduzir > 0 && (
                         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 text-xs text-gray-500">
-                        {/* <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Und} und/cx</span> */}
+                          {/* <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Und} und/cx</span> */}
                           {(() => {
                             const nameUpper = (item.MaterialProducao || '').toUpperCase();
                             // Se for FOFURA, não exibir nenhum texto/valor para Estoque
@@ -368,7 +386,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                                 : 'Estoque Mezanino: OK ✅';
                             return (
                               <span className={`${cls} px-1 sm:px-2 py-1 rounded-full text-xs`} title={diff !== undefined ? `Diferença: ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} t` : undefined}>
-                                 {label}
+                                {label}
                               </span>
                             );
                           })()}
