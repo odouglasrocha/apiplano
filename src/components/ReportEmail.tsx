@@ -14,6 +14,7 @@ export const ReportEmail: React.FC<ReportEmailProps> = ({ summaryHtml }) => {
   const [toInput, setToInput] = useState('');
   const [ccInput, setCcInput] = useState('');
   const [bccInput, setBccInput] = useState('');
+  const [sendToTeams, setSendToTeams] = useState<boolean>(true); // por padrão, enviar também ao Teams quando houver webhook
 
   // Tabela removida do e-mail conforme solicitado; não construiremos dados tabulares aqui.
 
@@ -46,6 +47,7 @@ export const ReportEmail: React.FC<ReportEmailProps> = ({ summaryHtml }) => {
           ccEmails,
           bccEmails,
           summaryHtml, // envia bloco adicional de resumo em HTML para o backend montar no corpo do e-mail
+          sendToTeams, // controla se também envia ao Teams via webhook no backend
         }),
       });
       const json = await res.json();
@@ -84,6 +86,11 @@ export const ReportEmail: React.FC<ReportEmailProps> = ({ summaryHtml }) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">BCC</label>
           <textarea className="w-full border rounded-md px-3 py-2 text-sm" rows={2} placeholder="opcional" value={bccInput} onChange={(e) => setBccInput(e.target.value)} />
         </div>
+        <div className="flex items-center gap-2 mt-1">
+          <input id="sendToTeams" type="checkbox" className="h-4 w-4" checked={sendToTeams} onChange={(e) => setSendToTeams(e.target.checked)} />
+          <label htmlFor="sendToTeams" className="text-sm text-gray-700">Enviar também para Teams (canal via Webhook)</label>
+        </div>
+        <div className="text-xs text-gray-500 -mt-2">Quando marcado, o backend publica o mesmo relatório no canal do Teams configurado.</div>
       </div>
       <div className="mt-3">
         <button disabled={loading || toEmails.length === 0} onClick={handleSend} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm">
