@@ -759,7 +759,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
             const year = new Date().getFullYear();
             const contactName = (import.meta.env.VITE_CONTACT_NAME || '').trim();
             const contactEmail = (import.meta.env.VITE_CONTACT_EMAIL || '').trim();
-            const contact = contactEmail ? ` | Contato: ${contactName ? contactName + ' ' : ''}<${contactEmail}>` : '';
+            const contact = contactEmail ? ` | Contato: ${contactName ? contactName + ' ' : ''}${contactEmail}` : '';
             return `© ${year} Sistema de Planejamento de Produção${contact}`;
           })()}
         </div>
