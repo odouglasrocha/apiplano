@@ -291,7 +291,6 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                       </div>
                       {materialRef && (
                         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 text-xs text-gray-500">
-                          <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Gramagem}g</span>
                           <span className="bg-gray-100 px-1 sm:px-2 py-1 rounded-full text-xs">{materialRef.Und} und/cx</span>
                           {(() => {
                             const nameUpper = (item.MaterialProducao || '').toUpperCase();
@@ -309,8 +308,8 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                             const label = diff === undefined
                               ? 'Estoque'
                               : diff < 0
-                                ? 'Estoque/falta'
-                                : 'Estoque: ok';
+                                ? 'Estoque Mezanino:Falta'
+                                : 'Estoque Mezanino: Ok';
                             return (
                               <span className={`${cls} px-1 sm:px-2 py-1 rounded-full text-xs`} title={diff !== undefined ? `Diferença: ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} t` : undefined}>
                                  {label}
