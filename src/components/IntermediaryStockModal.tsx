@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { EnrichedPlanItem } from '../types/production';
 import { materialsData } from '../data/materials';
@@ -80,6 +80,28 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const pacoteKg = getPacoteKg(); // 10 kg por pacote atualmente
 
+  // Carrega valores salvos da base test.intermediario ao abrir o modal
+  useEffect(() => {
+    const loadSaved = async () => {
+      try {
+        const resp = await fetch('/api/intermediario');
+        const json = await resp.json();
+        if (json?.success && Array.isArray(json.data)) {
+          const map: Record<string, number> = { ...INITIAL_QTD };
+          for (const item of json.data) {
+            const key = String(item?.aromaKey || '').toUpperCase();
+            const val = Number(item?.qtdPacotes || 0);
+            if (key in map) map[key] = val;
+          }
+          setQuantidades(map);
+        }
+      } catch (_) {
+        // silencioso
+      }
+    };
+    if (open) loadSaved();
+  }, [open]);
+
   // Cálculos por aroma: Tons (intermediário), Falta no Plano (planejado - produzido em tons), Diferença
   const linhas = useMemo(() => {
     return AROMAS.map((aroma) => {
@@ -131,9 +153,21 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
     [linhas]
   );
 
-  const handleChange = (key: string, value: string) => {
+  const handleChange = async (key: string, value: string) => {
     const num = parseFloat(value.replace(',', '.'));
-    setQuantidades((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
+    const safe = isNaN(num) || num < 0 ? 0 : num;
+    // Atualiza UI imediatamente
+    setQuantidades((prev) => ({ ...prev, [key]: safe }));
+    // Auto-salva no backend (substitui valor anterior)
+    try {
+      await fetch(`/api/intermediario/${key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qtdPacotes: safe })
+      });
+    } catch (_) {
+      // silencioso: em caso de falha, mantemos UI e podemos re-tentar manualmente se necessário
+    }
   };
 
   if (!open) return null;

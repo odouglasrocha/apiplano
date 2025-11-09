@@ -51,6 +51,22 @@ mongoose.connect(process.env.MONGO_URI, {
     process.exit(1);
   });
 
+// Conexão secundária para a base "test" onde ficará a coleção "intermediario"
+// Mantemos isolado para não impactar o restante das coleções existentes.
+// Usar a mesma URI do MONGO_URI para a conexão intermediária, conforme solicitado
+const MONGO_URI_INTERMEDIARIO = process.env.MONGO_URI;
+let intermConn;
+try {
+  intermConn = mongoose.createConnection(MONGO_URI_INTERMEDIARIO, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  intermConn.on('connected', () => console.log('✅ Conexão secundária ativa para coleção "intermediario" (mesma URI que MONGO_URI)'));
+  intermConn.on('error', (err) => console.error('❌ Erro na conexão secundária (test):', err?.message || err));
+} catch (e) {
+  console.error('⚠️ Falha ao iniciar conexão secundária para test:', e?.message || e);
+}
+
 // Schema do MongoDB
 const producaoSchema = new mongoose.Schema({
   CodMaterialProducao: { type: Number, required: true, index: true },
@@ -61,6 +77,15 @@ const producaoSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Producao = mongoose.model('Producao', producaoSchema);
+
+// === Schema para Estoque Intermediário (coleção: test.intermediario) ===
+const intermediarioSchema = new mongoose.Schema({
+  aromaKey: { type: String, required: true, index: true }, // ex.: 'BACON', 'CEBOLA', etc.
+  qtdPacotes: { type: Number, required: true, min: 0 },
+}, { timestamps: true, collection: 'intermediario' });
+
+// O modelo é registrado na conexão secundária (base test)
+const Intermediario = intermConn ? intermConn.model('Intermediario', intermediarioSchema) : null;
 
 // === Schemas auxiliares para e-mail ===
 const recipientSchema = new mongoose.Schema({
@@ -151,6 +176,42 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ success: false, message: 'Sessão inválida' });
   }
 }
+
+// === Intermediário Aroma: API para auto-salvamento de Quant. Pacote ===
+// GET: retorna todas as quantidades salvas por aroma
+app.get('/api/intermediario', async (req, res) => {
+  try {
+    if (!Intermediario) return res.status(500).json({ success: false, message: 'Modelo não inicializado' });
+    const docs = await Intermediario.find({}).lean();
+    return res.status(200).json({ success: true, data: docs });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e?.message || 'Erro ao carregar intermediário' });
+  }
+});
+
+// PUT: upsert por aromaKey para substituir sempre o valor anterior
+app.put('/api/intermediario/:aromaKey', async (req, res) => {
+  try {
+    if (!Intermediario) return res.status(500).json({ success: false, message: 'Modelo não inicializado' });
+    const aromaKey = (req.params?.aromaKey || '').toUpperCase().trim();
+    const rawVal = req.body?.qtdPacotes ?? req.body?.value;
+    const qtdPacotes = Number(rawVal);
+
+    if (!aromaKey) return res.status(400).json({ success: false, message: 'aromaKey é obrigatório' });
+    if (!Number.isFinite(qtdPacotes) || qtdPacotes < 0) {
+      return res.status(400).json({ success: false, message: 'qtdPacotes deve ser um número >= 0' });
+    }
+
+    const doc = await Intermediario.findOneAndUpdate(
+      { aromaKey },
+      { aromaKey, qtdPacotes },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    return res.status(200).json({ success: true, data: doc });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e?.message || 'Erro ao salvar intermediário' });
+  }
+});
 
 // === Destinatários (somente id e alias ao frontend) ===
 app.get('/api/email/recipients', requireAuth, async (req, res) => {
