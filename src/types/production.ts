@@ -5,6 +5,11 @@ export interface Material {
   Und: number;
   Caixas: number;
   PPm: number;
+  // Referências adicionais solicitadas pelo usuário
+  // Pacote: quantidade de unidades por pacote (valor de referência). Utilizado como string para permitir formatação "10,000".
+  // Pallet: quantidade de caixas por pallet (valor de referência)
+  Pacote: string;
+  Pallet: number;
 }
 
 export interface PlanItem {

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Package, Truck, Scale, TrendingUp, Target, Clock, Zap, AlertTriangle } from 'lucide-react';
-import { KPICards } from './KPICards';
+import { Truck, Scale, TrendingUp } from 'lucide-react';
 
 interface ModernKPICardsProps {
   kpis: {
@@ -201,24 +200,17 @@ export const ModernKPICards: React.FC<ModernKPICardsProps> = ({ kpis }) => {
               
               <div className="space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">{card.title}</p>
-                {card.values ? (
-                  <div className="space-y-2">
-                    {card.description && (
-                      <p className="text-xs text-gray-500">{card.description}</p>
-                    )}
-                    {card.values.map((valueItem, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium text-gray-600">{valueItem.label}:</span>
-                        <span className="text-sm sm:text-lg font-bold text-gray-800 text-right">{valueItem.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-baseline space-x-1">
-                    <p className="text-2xl sm:text-3xl font-bold text-gray-800">{card.value}</p>
-                    {card.unit && <span className="text-base sm:text-lg font-semibold text-gray-600">{card.unit}</span>}
-                  </div>
-                )}
+                <div className="space-y-2">
+                  {card.description && (
+                    <p className="text-xs text-gray-500">{card.description}</p>
+                  )}
+                  {card.values.map((valueItem, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-gray-600">{valueItem.label}:</span>
+                      <span className="text-sm sm:text-lg font-bold text-gray-800 text-right">{valueItem.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

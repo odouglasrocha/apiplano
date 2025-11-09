@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Package, Zap, Droplets, TrendingUp, Search, Filter, MoreVertical, Building2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Package, Zap, Droplets, Search } from 'lucide-react';
 import { EnrichedPlanItem } from '../types/production';
 import { materialsData } from '../data/materials';
 import logoMotor from '../public/logo-motor.png';
+import { IntermediaryStockModal } from './IntermediaryStockModal';
 
 
 interface ModernProductionTableProps {
@@ -15,6 +16,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
+  const [showIntermediaryModal, setShowIntermediaryModal] = useState(false);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -102,16 +104,25 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
             </div>
           </div>
           
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar material, código, FOFURA ou TORCIDA..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-            />
+          {/* Search + Botão Estoque Intermediário */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar material, código, FOFURA ou TORCIDA..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowIntermediaryModal(true)}
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Estoque Intermediário
+            </button>
           </div>
         </div>
       </div>
@@ -557,6 +568,13 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
           © 2025 Orlando Douglas Rocha - orlando.rocha@pepsico.com | Sistema de Planejamento de Produção
         </div>
       </div>
+
+      {/* Modal: Estoque Intermediário */}
+      <IntermediaryStockModal
+        open={showIntermediaryModal}
+        onClose={() => setShowIntermediaryModal(false)}
+        planData={data}
+      />
     </div>
   );
 };
