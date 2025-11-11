@@ -236,6 +236,9 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
     // O objetivo é aproximar ao máximo o layout mostrado nas imagens enviadas.
 
     const nowStr = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour12: false });
+    // URL do sistema para exibir ao lado do "Resumo consolidado do plano" no relatório completo
+    // Preferimos variável de ambiente do Vite (frontend). Caso não esteja definida, usamos o domínio padrão.
+    const systemUrl = (import.meta as any).env?.VITE_SYSTEM_URL || 'https://planing-ita.com/';
 
     const torcidaData = data.filter((it) => /TORCIDA/i.test(it.MaterialProducao || ''));
     const totals = torcidaData.reduce((acc, it) => {
@@ -311,7 +314,9 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
 
     const introText = `
       <div style="margin-top:12px;font-size:14px;color:#374151">Segue o relatório de produção e data e horário do dia: ${nowStr}.</div>
-      <div style="margin-top:8px;font-weight:700;color:#111827">Resumo consolidado do plano</div>`;
+      <div style="margin-top:8px;font-weight:700;color:#111827">Resumo consolidado do plano: 
+        <a href="${systemUrl}" style="color:#2563eb;text-decoration:none" target="_blank" rel="noopener noreferrer">${systemUrl}</a>
+      </div>`;
 
     const topKpis = `
       <div style="display:flex;gap:12px;margin-top:12px">

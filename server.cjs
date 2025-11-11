@@ -328,7 +328,9 @@ function buildReportHtml(items, hasScreenshot, summaryHtml, dateTimeStr) {
 
   const summaryBlock = summaryHtml ? `
     <div style="margin:16px 0;padding:12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb">
-      <h3 style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;font-size:16px;color:#1f2937;margin:0 0 8px 0">Resumo consolidado do plano</h3>
+      <h3 style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;font-size:16px;color:#1f2937;margin:0 0 8px 0">Resumo consolidado do plano: 
+        <a href="${process.env.SYSTEM_URL || 'https://planing-ita.com/'}" style="color:#2563eb;text-decoration:none" target="_blank" rel="noopener noreferrer">${process.env.SYSTEM_URL || 'https://planing-ita.com/'}</a>
+      </h3>
       <div style="font-size:14px;color:#374151">${summaryHtml}</div>
     </div>
   ` : '';
