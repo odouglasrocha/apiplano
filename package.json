@@ -12,6 +12,8 @@
     "deploy": "git pull && npm install && npm run build && pm2 restart all"
   },
   "dependencies": {
+    "node-html-to-image": "^3.2.0",
+    "puppeteer": "^23.6.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

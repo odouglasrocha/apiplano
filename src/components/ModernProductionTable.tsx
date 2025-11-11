@@ -89,6 +89,10 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
   const refreshAromaDifferences = async () => {
     try {
       const resp = await fetch('/api/intermediario');
+      if (!resp.ok) {
+        // se a API estiver fora, mantém silencioso para não poluir UI
+        return;
+      }
       const json = await resp.json();
       const qtdMap: Record<string, number> = {};
       if (json?.success && Array.isArray(json.data)) {
@@ -228,22 +232,113 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
   };
 
   const summaryHtml = (() => {
-    // Apenas itens TORCIDA devem ser enviados no resumo por e-mail
+    // Construímos um HTML completo com estilos inline para ser usado como corpo do e-mail/Teams.
+    // O objetivo é aproximar ao máximo o layout mostrado nas imagens enviadas.
+
+    const nowStr = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour12: false });
+
     const torcidaData = data.filter((it) => /TORCIDA/i.test(it.MaterialProducao || ''));
-    const lines = torcidaData.map((it) => {
-      const planned = computePlannedTons(it);
-      const produced = computeProducedTons(it);
-      return `<li> ${it.MaterialProducao} — Tons: ${formatTons(planned)} Produzido Tons: ${formatTons(produced)}t </li>`;
-    }).join('');
     const totals = torcidaData.reduce((acc, it) => {
       acc.planned += computePlannedTons(it);
       acc.produced += computeProducedTons(it);
       return acc;
     }, { planned: 0, produced: 0 });
-    const falta = Math.max(totals.planned - totals.produced, 0);
+    const faltaTotal = Math.max(totals.planned - totals.produced, 0);
+    const progressoGeral = totals.planned > 0 ? (totals.produced / totals.planned) * 100 : 0;
+
+    // Cores usadas para aproximar o visual da imagem
+    const colors = {
+      headerStart: '#1656d1',
+      headerEnd: '#0a3fb3',
+      kpiPlanejadoBg: '#e8f7ee',
+      kpiProduzidoBg: '#e9f1fe',
+      kpiFaltaBg: '#fff2e6',
+      kpiPlanejadoText: '#065f46',
+      kpiProduzidoText: '#1e40af',
+      kpiFaltaText: '#9a3412',
+      progressFill: '#f5b324',
+      progressTrack: '#e5e7eb',
+      cardBorder: '#e5e7eb',
+      titleBlue: '#2563eb'
+    } as const;
+
+    const kpiCard = (title: string, value: string, bg: string, accent: string) => `
+      <div style="flex:1;padding:16px;border-radius:16px;background:${bg};border:1px solid ${colors.cardBorder}">
+        <div style="display:flex;align-items:center;margin-bottom:6px">
+          <div style="font-size:14px;color:${accent}">${title}</div>
+        </div>
+        <div style="font-weight:800;color:#111827;font-size:22px">${value}</div>
+      </div>`;
+
+    const progressBar = (percent: number) => {
+      const pct = Math.max(0, Math.min(100, percent));
+      return `
+        <div style="position:relative;width:100%;height:18px;background:${colors.progressTrack};border-radius:999px;overflow:hidden">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${colors.progressFill}"></div>
+          <div style="position:absolute;left:0;top:0;height:100%;width:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#1f2937;font-weight:700">${pct.toFixed(1)}%</div>
+        </div>`;
+    };
+
+    const itemRows = torcidaData.map((it) => {
+      const planned = computePlannedTons(it);
+      const produced = computeProducedTons(it);
+      const falta = Math.max(planned - produced, 0);
+      const pctRaw = planned > 0 ? (produced / planned) * 100 : 0;
+      const pct = Math.max(0, Math.min(100, pctRaw));
+      return `
+        <div style="border:1px solid ${colors.cardBorder};border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-weight:700;color:#111827;font-size:16px">${it.MaterialProducao}</div>
+            <div style="font-weight:800;color:${colors.titleBlue};font-size:18px">${pct.toFixed(1)}%</div>
+          </div>
+          ${progressBar(pct)}
+          <div style="display:flex;gap:12px;margin-top:12px">
+            ${kpiCard('Planejado', `${formatTons(planned)}t`, colors.kpiPlanejadoBg, colors.kpiPlanejadoText)}
+            ${kpiCard('Produzido', `${formatTons(produced)}t`, colors.kpiProduzidoBg, colors.kpiProduzidoText)}
+            ${kpiCard('Falta', `${formatTons(falta)}t`, colors.kpiFaltaBg, colors.kpiFaltaText)}
+          </div>
+        </div>`;
+    }).join('');
+
+    const header = `
+      <div style="background:#f7f7f7;color:#111827;border-radius:16px 16px 0 0;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ${colors.cardBorder}">
+        <div style="font-size:20px;font-weight:800">📊 Relatório de Produção – Embalagem Torcida</div>
+        <div style="text-align:right;font-size:12px">
+          <div style="opacity:.9">Data e Horário</div>
+          <div style="font-weight:700">${nowStr}</div>
+        </div>
+      </div>`;
+
+    const introText = `
+      <div style="margin-top:12px;font-size:14px;color:#374151">Segue o relatório de produção e data e horário do dia: ${nowStr}.</div>
+      <div style="margin-top:8px;font-weight:700;color:#111827">Resumo consolidado do plano</div>`;
+
+    const topKpis = `
+      <div style="display:flex;gap:12px;margin-top:12px">
+        ${kpiCard('Planejado', `${formatTons(totals.planned)}t`, colors.kpiPlanejadoBg, colors.kpiPlanejadoText)}
+        ${kpiCard('Produzido', `${formatTons(totals.produced)}t`, colors.kpiProduzidoBg, colors.kpiProduzidoText)}
+        ${kpiCard('Falta Produzir', `${formatTons(faltaTotal)}t`, colors.kpiFaltaBg, colors.kpiFaltaText)}
+      </div>`;
+
+    const geralSection = `
+      <div style="border:1px solid ${colors.cardBorder};border-radius:16px;padding:16px;margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-weight:700;color:#111827;font-size:16px">Progresso Geral</div>
+          <div style="font-weight:800;color:${colors.titleBlue};font-size:18px">${Math.max(0, Math.min(100, progressoGeral)).toFixed(1)}%</div>
+        </div>
+        ${progressBar(Math.max(0, Math.min(100, progressoGeral)))}
+      </div>`;
+
     return `
-      <div><div style="font-weight:600">Itens TORCIDA somados no plano:</div><ul style="margin:6px 0 8px 18px;">${lines}</ul>
-      <div><span style="font-weight:600">Resumo:</span> Planejado: ${formatTons(totals.planned)}t · Produzido: ${formatTons(totals.produced)}t · Falta: ${formatTons(falta)}t.</div></div>
+      <div data-full-report="true" style="max-width:960px;margin:0 auto;border:1px solid ${colors.cardBorder};border-radius:16px;overflow:hidden;background:#ffffff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif">
+        ${header}
+        <div style="padding:16px">
+          ${introText}
+          ${topKpis}
+          ${geralSection}
+          ${itemRows}
+        </div>
+      </div>
     `;
   })();
 

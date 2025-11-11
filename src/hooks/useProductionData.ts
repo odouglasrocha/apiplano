@@ -24,6 +24,10 @@ export const useProductionData = () => {
     setError(null);
     try {
       const response = await fetch(`${API_BASE_URL}/producoes`);
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`API /producoes falhou (${response.status}). ${text || 'Sem corpo na resposta.'}`);
+      }
       const result = await response.json();
 
       if (result.success) {
@@ -32,7 +36,8 @@ export const useProductionData = () => {
         setError(result.message || 'Erro ao carregar dados');
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor');
+      const msg = err instanceof Error ? err.message : 'Erro de conexão com o servidor';
+      setError(msg);
       console.error('Erro ao carregar dados:', err);
     } finally {
       setLoading(false);
@@ -53,17 +58,30 @@ export const useProductionData = () => {
       let progressoProducao = 0;
 
       if (material) {
+        // produtividadeEsperada: referência (PPm por caixa)
         produtividadeEsperada = material.PPm / material.Caixas;
-        const gramagem = parseFloat(material.Gramagem.replace(',', '.'));
-        consumoMateriaPrima = item.PlanoCaixasFardos * material.Und * gramagem;
 
-        if (item.BolsasProduzido) {
-          const planoEmCaixas = item.PlanoCaixasFardos / (material.Caixas || 1);
-          progressoProducao = (item.BolsasProduzido / planoEmCaixas) * 100;
+        // Cálculo de consumo planejado em kg (para referência)
+        const gramagem = parseFloat(String(material.Gramagem).replace(',', '.'));
+        consumoMateriaPrima = item.PlanoCaixasFardos * material.Und * gramagem; // kg
 
-          if (Math.abs(progressoProducao - 100) < 1) {
-            progressoProducao = 100;
-          }
+        // Cálculo de progresso com base em toneladas (mesma regra usada no relatório)
+        const plannedTons = (() => {
+          if (item.Tons && item.Tons > 0) return item.Tons;
+          const und = parseFloat(String(material.Und).replace(',', '.'));
+          return (item.PlanoCaixasFardos * und * gramagem) / 1000; // kg -> tons
+        })();
+
+        const producedTons = (() => {
+          const bolsas = item.BolsasProduzido ?? 0;
+          return (bolsas * gramagem) / 1000; // kg -> tons
+        })();
+
+        progressoProducao = plannedTons > 0 ? (producedTons / plannedTons) * 100 : 0;
+        // Clamp para evitar >100%
+        if (progressoProducao > 100) progressoProducao = 100;
+        if (Math.abs(progressoProducao - 100) < 0.01) {
+          progressoProducao = 100;
         }
       }
 
@@ -103,7 +121,10 @@ export const useProductionData = () => {
         method: 'POST',
         body: formData
       });
-
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`API /producoes (POST) falhou (${response.status}). ${text || 'Sem corpo na resposta.'}`);
+      }
       const result = await response.json();
 
       if (result.success) {
@@ -132,7 +153,10 @@ export const useProductionData = () => {
         method: 'PUT',
         body: formData
       });
-
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`API /producoes/atualizar (PUT) falhou (${response.status}). ${text || 'Sem corpo na resposta.'}`);
+      }
       const result = await response.json();
 
       if (result.success) {

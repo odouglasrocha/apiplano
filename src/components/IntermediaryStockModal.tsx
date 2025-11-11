@@ -102,6 +102,9 @@ export const IntermediaryStockModal: React.FC<IntermediaryStockModalProps> = ({ 
     const loadSaved = async () => {
       try {
         const resp = await fetch('/api/intermediario');
+        if (!resp.ok) {
+          return; // silencioso: não quebra o modal se API estiver fora
+        }
         const json = await resp.json();
         if (json?.success && Array.isArray(json.data)) {
           const map: Record<string, number | ''> = { ...INITIAL_QTD };

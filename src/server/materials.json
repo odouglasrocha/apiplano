@@ -1,0 +1,56 @@
+[
+  { "Codigo": "300061751", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061750", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300061635", "GramagemKg": 0.420, "UndPorCaixa": 16 },
+
+  { "Codigo": "300061778", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300061779", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300047936", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+  { "Codigo": "300061633", "GramagemKg": 0.120, "UndPorCaixa": 28 },
+
+  { "Codigo": "300061777", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061776", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+
+  { "Codigo": "300061775", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061774", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300056662", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+
+  { "Codigo": "300061773", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061772", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300047932", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+  { "Codigo": "300061632", "GramagemKg": 0.120, "UndPorCaixa": 28 },
+  { "Codigo": "300061631", "GramagemKg": 0.420, "UndPorCaixa": 16 },
+
+  { "Codigo": "300061771", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061770", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300047935", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+
+  { "Codigo": "300061539", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+  { "Codigo": "300061538", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300058009", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+
+  { "Codigo": "300047934", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+  { "Codigo": "300061725", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300061634", "GramagemKg": 0.420, "UndPorCaixa": 16 },
+  { "Codigo": "300061727", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+
+  { "Codigo": "300047931", "GramagemKg": 0.100, "UndPorCaixa": 27 },
+  { "Codigo": "300061728", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300061729", "GramagemKg": 0.035, "UndPorCaixa": 26 },
+
+  { "Codigo": "300062190", "GramagemKg": 0.060, "UndPorCaixa": 24 },
+  { "Codigo": "300062005", "GramagemKg": 0.210, "UndPorCaixa": 20 },
+  { "Codigo": "300062006", "GramagemKg": 0.210, "UndPorCaixa": 20 },
+
+  { "Codigo": "300061784", "GramagemKg": 0.120, "UndPorCaixa": 8 },
+  { "Codigo": "300061785", "GramagemKg": 0.120, "UndPorCaixa": 8 },
+
+  { "Codigo": "300061861", "GramagemKg": 0.035, "UndPorCaixa": 10 },
+
+  { "Codigo": "300061855", "GramagemKg": 0.060, "UndPorCaixa": 10 },
+  { "Codigo": "300061856", "GramagemKg": 0.060, "UndPorCaixa": 10 },
+  { "Codigo": "300061857", "GramagemKg": 0.060, "UndPorCaixa": 10 },
+  { "Codigo": "300061858", "GramagemKg": 0.060, "UndPorCaixa": 10 },
+  { "Codigo": "300061859", "GramagemKg": 0.060, "UndPorCaixa": 10 },
+  { "Codigo": "300061860", "GramagemKg": 0.035, "UndPorCaixa": 10 }
+]
