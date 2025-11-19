@@ -627,7 +627,7 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                                   {totalUnidades.toLocaleString('pt-BR', {
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 0,
-                                    useGrouping: false
+                                    useGrouping: true
                                   })} und
                                 </div>
                               );
