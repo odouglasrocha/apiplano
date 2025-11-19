@@ -612,13 +612,15 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                            {(() => {
                               const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
 
-                              if (!materialRef || !materialRef.Caixas || !materialRef.Und || !item.PlanoCaixasFardos) {
+                              if (!materialRef || !materialRef.Caixas || !materialRef.Und || !item.PlanoCaixasFardos || !item.BolsasProduzido) {
                                 return <span className="text-xs sm:text-sm text-gray-400">0,000 und</span>;
                               }
 
                               // Etapas separadas para clareza
-                              const pallets = item.PlanoCaixasFardos / materialRef.Caixas;
-                              const totalUnidades = Math.round(pallets) * materialRef.Caixas * materialRef.Und;
+                              //const pallets = item.PlanoCaixasFardos / materialRef.Caixas;
+                              //const totalUnidades = Math.round(pallets) * materialRef.Caixas * materialRef.Und;
+                              const pallets = item.BolsasProduzido;
+                              const totalUnidades = Math.round(pallets)
 
                               return (
                                 <div className="text-xs sm:text-sm text-gray-600">
