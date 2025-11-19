@@ -536,8 +536,8 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                           <div>
                             <div className="text-xs sm:text-sm font-semibold text-gray-900">
                               {consumoKg.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 1,
-                                maximumFractionDigits: 1
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
                               })} t
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
@@ -612,13 +612,15 @@ export const ModernProductionTable: React.FC<ModernProductionTableProps> = ({ da
                            {(() => {
                               const materialRef = materialsData.find(m => m.Codigo === String(item.CodMaterialProducao));
 
-                              if (!materialRef || !materialRef.Caixas || !materialRef.Und || !item.PlanoCaixasFardos) {
+                              if (!materialRef || !materialRef.Caixas || !materialRef.Und || !item.PlanoCaixasFardos || !item.BolsasProduzido) {
                                 return <span className="text-xs sm:text-sm text-gray-400">0,000 und</span>;
                               }
 
                               // Etapas separadas para clareza
-                              const pallets = item.PlanoCaixasFardos / materialRef.Caixas;
-                              const totalUnidades = Math.round(pallets) * materialRef.Caixas * materialRef.Und;
+                             // const pallets = item.PlanoCaixasFardos / materialRef.Caixas;
+                              //const totalUnidades = Math.round(pallets) * materialRef.Caixas * materialRef.Und;
+                              const pallets = item.BolsasProduzido
+                              const totalUnidades = Math.round(pallets)
 
                               return (
                                 <div className="text-xs sm:text-sm text-gray-600">
